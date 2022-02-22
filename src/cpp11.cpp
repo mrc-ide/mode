@@ -6,16 +6,16 @@
 #include <R_ext/Visibility.h>
 
 // code.cpp
-int add_int(int a, int b);
-extern "C" SEXP _mode_add_int(SEXP a, SEXP b) {
+std::vector<double> solve_logistic(double r, double K, int end_time, std::vector<double> y0, double dt);
+extern "C" SEXP _mode_solve_logistic(SEXP r, SEXP K, SEXP end_time, SEXP y0, SEXP dt) {
   BEGIN_CPP11
-    return cpp11::as_sexp(add_int(cpp11::as_cpp<cpp11::decay_t<int>>(a), cpp11::as_cpp<cpp11::decay_t<int>>(b)));
+    return cpp11::as_sexp(solve_logistic(cpp11::as_cpp<cpp11::decay_t<double>>(r), cpp11::as_cpp<cpp11::decay_t<double>>(K), cpp11::as_cpp<cpp11::decay_t<int>>(end_time), cpp11::as_cpp<cpp11::decay_t<std::vector<double>>>(y0), cpp11::as_cpp<cpp11::decay_t<double>>(dt)));
   END_CPP11
 }
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_mode_add_int", (DL_FUNC) &_mode_add_int, 2},
+    {"_mode_solve_logistic", (DL_FUNC) &_mode_solve_logistic, 5},
     {NULL, NULL, 0}
 };
 }
