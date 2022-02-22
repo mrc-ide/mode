@@ -1,11 +1,13 @@
 Package: mode
-Title: Package Title Here
+Title: Solve Multiple ODEs
 Version: 0.1.0
-Authors@R: c(person("First", "Last", role = c("aut", "cre"),
-                    email = "email@example.com"),
+Authors@R: c(person("Rich", "FitzJohn", role = c("aut", "cre"),
+                    email = "rich.fitzjohn@gmail.com"),
+             person("Alex", "Hill", role = c("aut"),
+                    email = "alex.hill@gmail.com"),
              person("Imperial College of Science, Technology and Medicine",
                     role = "cph"))
-Description: Description of the pacakge in more than one full sentence.
+Description: Solve multiple ODEs in parallel.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
