@@ -15,7 +15,8 @@ RoxygenNote: 7.1.2
 URL: https://github.com/mrc-ide/mode
 BugReports: https://github.com/mrc-ide/mode/issues
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    dde
 Config/testthat/edition: 3
 LinkingTo: 
     cpp11
