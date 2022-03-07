@@ -19,5 +19,5 @@ test_that("integration agrees with dde", {
   expected <- logistic_dde(r, K, end_time, y0)
   actual <- logistic_dopri(r, K, end_time, y0)
 
-  expect_equal(expected, actual)
+  expect_equal(expected, actual, tolerance = 1e-7)
 })
