@@ -1,3 +1,21 @@
+##' Create a mode model from a C++ input file.  This function will
+##' compile the mode support around your model and return an object
+##' that can be used to work with the model.
+##'
+##' @title Create a mode model from a C++ input file
+##'
+##' @param filename The path to a single C++ file
+##'
+##' @param quiet Logical, indicating if compilation messages from
+##'   \code{pkgbuild} should be displayed.  Error messages will be
+##'   displayed on compilation failure regardless of the value used.
+##'
+##' @param workdir Optional working directory to use.  If \code{NULL}
+##'   uses a temporary directory.  By using a different directory of
+##'   your choosing you can see the generated code.
+##'
+##' @export
+##' @return A generator object based on your source files
 mode <- function(filename, quiet = FALSE, workdir = NULL) {
   stopifnot(file.exists(filename))
 
