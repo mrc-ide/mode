@@ -17,6 +17,8 @@
 ##' @export
 ##' @return A generator object based on your source files
 mode <- function(filename, quiet = FALSE, workdir = NULL) {
+  ## TODO: 'mode' is actually a terrible name for this as it conflicts
+  ## with stats::mode, but something to think about later perhaps.
   stopifnot(file.exists(filename))
 
   res <- generate_mode(filename, quiet, workdir)
@@ -39,11 +41,6 @@ mode <- function(filename, quiet = FALSE, workdir = NULL) {
 
 
 generate_mode <- function(filename, quiet, workdir) {
-  ## It has been useful to allow metadata in the source code (in the
-  ## form of C++11 psedo-attributes to control aspects of the code
-  ## generation.  This is going to be important as soon as we allow
-  ## for parameters to be changable, so I've supported it
-  ## immediately...
   config <- parse_metadata(filename)
   hash <- hash_file(filename)
 
@@ -73,29 +70,18 @@ generate_mode <- function(filename, quiet, workdir) {
                            file.path(path, "NAMESPACE"))
   substitute_mode_template(data, "Makevars",
                            file.path(path, "src", "Makevars"))
-
-  code <- mode_code(data, config)
-  writeLines(code$r, file.path(path, "R/mode.R"))
-  writeLines(code$cpp, file.path(path, "src/mode.cpp"))
+  substitute_mode_template(data, "mode.R.template",
+                           file.path(path, "R/mode.R"))
+  substitute_mode_template(data, "mode.cpp",
+                           file.path(path, "src/mode.cpp"))
 
   list(key = base, data = data, path = path)
-}
-
-
-mode_code <- function(data, config) {
-  mode_r <- substitute_mode_template(data, "mode.R.template", NULL)
-  mode_cpp <- substitute_mode_template(data, "mode.cpp", NULL)
-  list(r = mode_r,
-       cpp = mode_cpp)
 }
 
 
 substitute_template <- function(data, src, dest) {
   template <- read_lines(src)
   txt <- glue_whisker(template, data)
-  if (is.null(dest)) {
-    return(txt)
-  }
   ## TODO: dust avoids writing out unchanged files
   writeLines(txt, dest)
 }
