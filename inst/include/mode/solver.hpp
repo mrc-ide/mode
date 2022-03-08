@@ -27,6 +27,10 @@ public:
     t_ = t;
   }
 
+  double time() const {
+    return t_;
+  }
+
   double step(double tcrit) {
     bool success = false;
     bool reject = false;

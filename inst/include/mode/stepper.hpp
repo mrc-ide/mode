@@ -49,7 +49,7 @@ template<typename Model>
 class stepper {
 private:
   Model m;
-  const size_t n;
+  size_t n;
   std::vector<double> y;
   std::vector<double> y_next;
   std::vector<double> y_stiff;
