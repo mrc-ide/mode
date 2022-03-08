@@ -1,5 +1,5 @@
 #include <cpp11.hpp>
-#include <mode/mode.hpp>
+#include <mode/solver.hpp>
 
 class logistic {
 private:
