@@ -25,5 +25,9 @@
 
     time = function() {
       mode_{{name}}_time(private$ptr_)
+    },
+
+    solve = function(end_time) {
+      mode_{{name}}_solve(private$ptr_, end_time)
     }
   ))
