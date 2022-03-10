@@ -10,7 +10,7 @@ test_that("can integrate logistic", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = K[[1]], K2 = K[[2]])
-  mod <- gen$new(pars, 0)
+  mod <- gen$new(pars, 0, 1)
 
   actual <- vapply(times, function(t) mod$solve(t), numeric(length(y0)))
   expect_equal(actual, analytic, tolerance = 1e-7)

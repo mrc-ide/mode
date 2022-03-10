@@ -17,10 +17,12 @@ private:
   stats stats_;
   double last_error_;
   stepper<Model> stepper_;
+  size_t size_;
 public:
   solver(Model m, double t, std::vector<double> y, control ctl) : t_(t),
                                                                   ctl_(ctl),
-                                                                  stepper_(m) {
+                                                                  stepper_(m),
+                                                                  size_(m.size()) {
     stepper_.reset(t, y);
     stats_.reset();
     h_ = initial_step_size(m, t, y, ctl_);
@@ -91,11 +93,21 @@ public:
     return t_;
   }
 
-  std::vector<double> solve(int t) {
+  void solve(int t) {
     while (t_ < t) {
       step(t);
     }
-    return stepper_.output();
+  }
+
+  size_t size() {
+    return size_;
+  }
+
+  std::vector<double>::iterator state(std::vector<double>::iterator end_state) const {
+    for(size_t i = 0; i < size_; ++i, end_state++){
+      *end_state = stepper_.output()[i];
+    }
+    return end_state;
   }
 };
 }
