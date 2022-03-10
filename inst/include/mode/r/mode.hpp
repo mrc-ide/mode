@@ -24,5 +24,11 @@ double mode_time(SEXP ptr) {
   return obj->time();
 }
 
+template <typename T>
+std::vector<double> mode_solve(SEXP ptr, int end_time) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  return obj->solve(end_time);
+}
+
 }
 }

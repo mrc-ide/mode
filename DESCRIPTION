@@ -20,8 +20,6 @@ Imports:
     glue,
     pkgbuild (>= 1.2.0),
     pkgload
-LinkingTo: 
-    cpp11
 Suggests:
     decor,
     dde,

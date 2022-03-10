@@ -31,6 +31,10 @@ public:
     return solver_[0].time();
   }
 
+  std::vector<double> solve(int end_time) {
+    return solver_[0].solve(end_time);
+  }
+
 private:
   // NOTE: We're going to have a vector of solvers eventually, but
   // it's also quite hard to set this up to hold a single 'solver'
