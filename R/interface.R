@@ -34,9 +34,7 @@ mode <- function(filename, quiet = FALSE, workdir = NULL) {
   ## Don't pollute the search path
   detach(paste0("package:", res$data$base), character.only = TRUE)
 
-  res$dll <- file.path(path, "src", paste0(res$key, .Platform$dynlib.ext))
-  res$env <- tmp$env
-  res$gen <- res$env[[res$data$name]]
+  tmp$env[[res$data$name]]
 }
 
 
