@@ -1,0 +1,29 @@
+{{name}} <- R6::R6Class(
+  "mode",
+  cloneable = FALSE,
+
+  private = list(
+    pars_ = NULL,
+    info_ = NULL,
+    ptr_ = NULL
+  ),
+
+  public = list(
+    initialize = function(pars, time) {
+      res <- mode_{{name}}_alloc(pars, time)
+      private$ptr_ <- res[[1]]
+      private$pars_ <- pars
+    },
+
+    name = function() {
+      "{{name}}"
+    },
+
+    pars = function() {
+      private$pars_
+    },
+
+    time = function() {
+      mode_{{name}}_time(private$ptr_)
+    }
+  ))
