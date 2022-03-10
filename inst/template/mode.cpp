@@ -14,5 +14,5 @@ double mode_{{name}}_time(SEXP ptr) {
 
 [[cpp11::register]]
 std::vector<double> mode_{{name}}_solve(SEXP ptr, int end_time) {
-return mode::r::mode_solve<mode::container<{{class}}>>(ptr, end_time);
+  return mode::r::mode_solve<mode::container<{{class}}>>(ptr, end_time);
 }
