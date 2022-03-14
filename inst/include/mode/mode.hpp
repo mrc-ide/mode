@@ -43,7 +43,7 @@ public:
   }
 
   void solve(int end_time) {
-    for (size_t i; i < n_particles_; ++i){
+    for (size_t i = 0; i < n_particles_; ++i) {
       solver_[i].solve(end_time);
     }
   }
