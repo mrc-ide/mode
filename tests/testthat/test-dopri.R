@@ -10,10 +10,12 @@ test_that("can integrate logistic", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = K[[1]], K2 = K[[2]])
-  mod <- gen$new(pars, 0)
+  n_particles <- 5
+  mod <- gen$new(pars, 0, n_particles)
 
-  actual <- vapply(times, function(t) mod$solve(t), numeric(length(y0)))
-  expect_equal(actual, analytic, tolerance = 1e-7)
-  expect_equal(actual, dde, tolerance = 1e-7)
-  expect_equal(mod$time(), 25)
+  actual <- vapply(times, function(t) mod$solve(t),
+                   matrix(0.0, length(y0), n_particles))
+  expect_equal(actual[, 1, ], analytic, tolerance = 1e-7)
+  expect_equal(actual[, 1, ], dde, tolerance = 1e-7)
+  expect_identical(actual, actual[, rep(1, 5), ])
 })

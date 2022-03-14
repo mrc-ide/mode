@@ -3,8 +3,8 @@
 {{model}}
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time);
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time, size_t n_particles) {
+  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles);
 }
 
 [[cpp11::register]]
@@ -13,6 +13,6 @@ double mode_{{name}}_time(SEXP ptr) {
 }
 
 [[cpp11::register]]
-std::vector<double> mode_{{name}}_solve(SEXP ptr, int end_time) {
+cpp11::sexp mode_{{name}}_solve(SEXP ptr, int end_time) {
   return mode::r::mode_solve<mode::container<{{class}}>>(ptr, end_time);
 }
