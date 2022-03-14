@@ -6,6 +6,7 @@
 #include <cpp11/list.hpp>
 #include <cpp11/integers.hpp>
 #include <cpp11/doubles.hpp>
+#include <cpp11/protect.hpp>
 
 #include <mode/mode.hpp>
 
@@ -32,14 +33,20 @@ cpp11::sexp state_array(const std::vector<double>& dat,
   cpp11::writable::doubles ret(dat.size());
   std::copy(dat.begin(), dat.end(), REAL(ret));
 
-  ret.attr("dim") = cpp11::writable::integers{n_state, n_particles};
+  ret.attr("dim") = cpp11::writable::integers{static_cast<int>(n_state),
+                                              static_cast<int>(n_particles)};
 
   return ret;
 }
 
 template <typename T>
-cpp11::sexp mode_solve(SEXP ptr, int end_time) {
+cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  auto time = obj->time();
+  if (end_time < time) {
+    cpp11::stop("end_time (%f) must be greater than current time (%f)",
+                end_time, time);
+  }
   obj->solve(end_time);
 
   std::vector<double> dat(obj->n_state() * obj->n_particles());
