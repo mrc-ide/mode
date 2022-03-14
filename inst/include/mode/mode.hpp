@@ -25,7 +25,7 @@ public:
     auto m = model_type(pars);
     auto y = m.initial(time);
     auto ctl = control();
-    for (size_t i; i < n_particles; ++i){
+    for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m, time, y, ctl));
     }
   }
