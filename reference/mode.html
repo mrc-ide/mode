@@ -54,7 +54,7 @@ that can be used to work with the model.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">mode</span><span class="op">(</span><span class="va">filename</span>, quiet <span class="op">=</span> <span class="cn">FALSE</span>, workdir <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">mode</span><span class="op">(</span><span class="va">filename</span>, quiet <span class="op">=</span> <span class="cn">FALSE</span>, workdir <span class="op">=</span> <span class="cn">NULL</span>, skip_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -69,6 +69,11 @@ displayed on compilation failure regardless of the value used.</p></dd>
 <dd><p>Optional working directory to use.  If <code>NULL</code>
 uses a temporary directory.  By using a different directory of
 your choosing you can see the generated code.</p></dd>
+<dt>skip_cache</dt>
+<dd><p>Logical, indicating if the cache of previously
+compiled models should be skipped. If <code>TRUE</code> then your model will
+not be looked for in the cache, nor will it be added to the
+cache after compilation.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
