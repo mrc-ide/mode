@@ -3,8 +3,17 @@
 ## heuristic and not do anything clever.
 parse_metadata <- function(filename) {
   class <- parse_metadata_guess_class(readLines(filename))
-  list(name = class,
-       class = class)
+  hash <- hash_file(filename)
+  name <- class
+  base <- paste0(name, hash)
+  ## TODO: See dust - there's some tricks here to allow nasty names
+  ## through by sanitising or simply replacing with "mode".  The
+  ## mangling (adding the hash) also needs disabling when building for
+  ## a package.
+  list(name = name,
+       base = base,
+       class = class,
+       hash = hash)
 }
 
 

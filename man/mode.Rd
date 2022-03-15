@@ -4,7 +4,7 @@
 \alias{mode}
 \title{Create a mode model from a C++ input file}
 \usage{
-mode(filename, quiet = FALSE, workdir = NULL)
+mode(filename, quiet = FALSE, workdir = NULL, skip_cache = FALSE)
 }
 \arguments{
 \item{filename}{The path to a single C++ file}
@@ -16,6 +16,11 @@ displayed on compilation failure regardless of the value used.}
 \item{workdir}{Optional working directory to use.  If \code{NULL}
 uses a temporary directory.  By using a different directory of
 your choosing you can see the generated code.}
+
+\item{skip_cache}{Logical, indicating if the cache of previously
+compiled models should be skipped. If \code{TRUE} then your model will
+not be looked for in the cache, nor will it be added to the
+cache after compilation.}
 }
 \value{
 A generator object based on your source files

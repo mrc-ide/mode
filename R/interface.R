@@ -14,48 +14,56 @@
 ##'   uses a temporary directory.  By using a different directory of
 ##'   your choosing you can see the generated code.
 ##'
+##' @param skip_cache Logical, indicating if the cache of previously
+##'   compiled models should be skipped. If `TRUE` then your model will
+##'   not be looked for in the cache, nor will it be added to the
+##'   cache after compilation.
+##'
 ##' @export
 ##' @return A generator object based on your source files
-mode <- function(filename, quiet = FALSE, workdir = NULL) {
+mode <- function(filename, quiet = FALSE, workdir = NULL, skip_cache = FALSE) {
   ## TODO: 'mode' is actually a terrible name for this as it conflicts
   ## with stats::mode, but something to think about later perhaps.
   stopifnot(file.exists(filename))
 
-  res <- generate_mode(filename, quiet, workdir)
+  config <- parse_metadata(filename)
 
-  path <- res$path
+  if (!skip_cache && !is.null(cache[[config$base]])) {
+    pkg <- cache[[config$base]]
+  } else {
+    pkg <- compile_mode(filename, config, workdir, quiet)
+    if (!skip_cache) {
+      cache[[config$base]] <- pkg
+    }
+  }
 
+  pkg$env[[config$name]]
+}
+
+
+compile_mode <- function(filename, config, workdir, quiet) {
+  path <- generate_mode(filename, config, workdir)
   pkgbuild::compile_dll(path, compile_attributes = TRUE,
                         quiet = quiet, debug = FALSE)
-  tmp <- pkgload::load_all(path, compile = FALSE, recompile = FALSE,
+  pkg <- pkgload::load_all(path, compile = FALSE, recompile = FALSE,
                            warn_conflicts = FALSE, export_all = FALSE,
                            helpers = FALSE, attach_testthat = FALSE,
                            quiet = quiet)
   ## Don't pollute the search path
-  detach(paste0("package:", res$data$base), character.only = TRUE)
-
-  tmp$env[[res$data$name]]
+  detach(paste0("package:", config$base), character.only = TRUE)
+  pkg
 }
 
 
-generate_mode <- function(filename, quiet, workdir) {
-  config <- parse_metadata(filename)
-  hash <- hash_file(filename)
-
-  ## TODO: See dust - there's some tricks here to allow nasty names
-  ## through by sanitising or simply replacing with "mode".  The
-  ## mangling (adding the hash) also needs disabling when building for
-  ## a package.
-  base <- paste0(config$name, hash)
-
+generate_mode <- function(filename, config, workdir) {
   model <- read_lines(filename)
 
-  ## This will likely become quiet complicated and need to move into
+  ## This will likely become quite complicated and need to move into
   ## its own thing.
   data <- list(model = model,
                name = config$name,
                class = config$class,
-               base = base,
+               base = config$base,
                path_mode_include = mode_file("include"))
 
   path <- mode_workdir(workdir)
@@ -73,7 +81,7 @@ generate_mode <- function(filename, quiet, workdir) {
   substitute_mode_template(data, "mode.cpp",
                            file.path(path, "src/mode.cpp"))
 
-  list(key = base, data = data, path = path)
+  path
 }
 
 
@@ -101,3 +109,6 @@ mode_workdir <- function(path) {
   }
   path
 }
+
+
+cache <- new.env(parent = emptyenv())
