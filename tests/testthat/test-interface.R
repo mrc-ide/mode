@@ -70,7 +70,7 @@ test_that("Can update time", {
   mod$update_state(initial_time)
   expect_equal(mod$time(), initial_time)
   res2 <- mod$solve(5)
-  expect_equal(res, res2)
+  expect_identical(res, res2)
 })
 
 test_that("Can only update time for all particles at once", {
@@ -81,5 +81,5 @@ test_that("Can only update time for all particles at once", {
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
   expect_error(mod$update_state(c(1, 2, 3, 4, 5)),
-               "time should be a scalar value")
+               "expected 'time' to be a scalar value")
 })
