@@ -11,6 +11,7 @@ namespace mode {
 template<typename Model>
 class solver {
 private:
+  Model m_;
   double t_;
   double h_;
   control ctl_;
@@ -19,14 +20,12 @@ private:
   stepper<Model> stepper_;
   size_t size_;
 public:
-  solver(Model m, double t, std::vector<double> y, control ctl) : t_(t),
-                                                                  ctl_(ctl),
-                                                                  stepper_(m),
-                                                                  size_(m.size()) {
-    stepper_.reset(t, y);
-    stats_.reset();
-    h_ = initial_step_size(m, t, y, ctl_);
-    t_ = t;
+  solver(Model m, double t, control ctl) : m_(m),
+                                           t_(t),
+                                           ctl_(ctl),
+                                           stepper_(m),
+                                           size_(m.size()) {
+    reset(t);
   }
 
   double time() const {
@@ -99,12 +98,25 @@ public:
     }
   }
 
+  void set_time(double t) {
+    reset(t);
+  }
+
+  void reset(double t) {
+    auto y = m_.initial(t);
+    stepper_.reset(t, y);
+    stats_.reset();
+    h_ = initial_step_size(m_, t, y, ctl_);
+    t_ = t;
+  }
+
   size_t size() {
     return size_;
   }
 
-  std::vector<double>::iterator state(std::vector<double>::iterator end_state) const {
-    for(size_t i = 0; i < size_; ++i, end_state++){
+  std::vector<double>::iterator
+  state(std::vector<double>::iterator end_state) const {
+    for (size_t i = 0; i < size_; ++i, end_state++) {
       *end_state = stepper_.output()[i];
     }
     return end_state;

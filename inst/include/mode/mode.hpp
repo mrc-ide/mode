@@ -23,10 +23,9 @@ public:
     // support multiple particles, and following the general approach
     // in dust will be sensible, I think.
     auto m = model_type(pars);
-    auto y = m.initial(time);
     auto ctl = control();
     for (size_t i = 0; i < n_particles; ++i) {
-      solver_.push_back(solver<model_type>(m, time, y, ctl));
+      solver_.push_back(solver<model_type>(m, time, ctl));
     }
   }
 
@@ -52,6 +51,12 @@ public:
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
       it = solver_[i].state(it);
+    }
+  }
+
+  void set_time(double time) {
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_time(time);
     }
   }
 
