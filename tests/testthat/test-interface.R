@@ -67,7 +67,7 @@ test_that("Can update time", {
   expect_equal(mod$time(), initial_time)
   res <- mod$solve(5)
   expect_equal(mod$time(), 5)
-  mod$update_state(initial_time)
+  mod$update_state(time = initial_time)
   expect_equal(mod$time(), initial_time)
   res2 <- mod$solve(5)
   expect_identical(res, res2)
