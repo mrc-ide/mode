@@ -56,7 +56,7 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
 
 double validate_time(cpp11::sexp r_time) {
   cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
-  if (time.size() > 1) {
+  if (time.size() != 1) {
     cpp11::stop("expected 'time' to be a scalar value");
   }
   return time[0];

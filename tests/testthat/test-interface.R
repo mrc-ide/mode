@@ -80,6 +80,6 @@ test_that("Can only update time for all particles at once", {
   n_particles <- 5
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
-  expect_error(mod$update_state(c(1, 2, 3, 4, 5)),
+  expect_error(mod$update_state(time = c(1, 2, 3, 4, 5)),
                "expected 'time' to be a scalar value")
 })
