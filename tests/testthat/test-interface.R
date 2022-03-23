@@ -57,7 +57,6 @@ test_that("cache hits don't compile", {
   expect_identical(gen3, gen)
 })
 
-
 test_that("Can update time", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
@@ -72,4 +71,15 @@ test_that("Can update time", {
   expect_equal(mod$time(), initial_time)
   res2 <- mod$solve(5)
   expect_equal(res, res2)
+})
+
+test_that("Can only update time for all particles at once", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  expect_error(mod$update_state(c(1, 2, 3, 4, 5)),
+               "time should be a scalar value")
 })

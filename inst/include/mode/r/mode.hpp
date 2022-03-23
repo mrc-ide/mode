@@ -13,14 +13,6 @@
 namespace mode {
 namespace r {
 
-double validate_time(cpp11::sexp r_time) {
-  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
-  if (time.size() > 1) {
-    cpp11::stop("Time should be a scalar value");
-  }
-  return time[0];
-}
-
 template <typename T>
 cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles) {
   auto pars = mode::mode_pars<T>(r_pars);
@@ -60,6 +52,14 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
   return state_array(dat, obj->n_state(), obj->n_particles());
+}
+
+double validate_time(cpp11::sexp r_time) {
+  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
+  if (time.size() > 1) {
+    cpp11::stop("time should be a scalar value");
+  }
+  return time[0];
 }
 
 template <typename T>
