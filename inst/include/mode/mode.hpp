@@ -17,16 +17,16 @@ public:
   using model_type = T;
   using pars_type = mode::pars_type<T>;
 
-  container(const pars_type& pars, const double time,
-            const size_t n_particles): n_particles_(n_particles) {
+  container(const pars_type &pars, const double time,
+            const size_t n_particles) : n_particles_(n_particles),
+                                        m_(model_type(pars)) {
     // This will get considerably more complicated once we move to
     // support multiple particles, and following the general approach
     // in dust will be sensible, I think.
-    auto m = model_type(pars);
-    auto y = m.initial(time);
     auto ctl = control();
+    auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
-      solver_.push_back(solver<model_type>(m, time, y, ctl));
+      solver_.push_back(solver<model_type>(m_, time, y, ctl));
     }
   }
 
@@ -48,10 +48,17 @@ public:
     }
   }
 
-  void state(std::vector<double>& end_state) {
+  void state(std::vector<double> &end_state) {
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
       it = solver_[i].state(it);
+    }
+  }
+
+  void set_time(double time) {
+    auto y = m_.initial(time);
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].reset(time, y);
     }
   }
 
@@ -63,6 +70,7 @@ private:
   // more than one system).
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
+  model_type m_;
 };
 
 }

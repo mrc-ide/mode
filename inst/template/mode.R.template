@@ -35,5 +35,11 @@
 
     solve = function(end_time) {
       mode_{{name}}_solve(private$ptr_, end_time)
+    },
+
+    update_state = function(pars = NULL, state = NULL, time = NULL,
+                            set_initial_state = NULL) {
+      mode_{{name}}_update_state(private$ptr_, time)
     }
+
   ))

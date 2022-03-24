@@ -54,5 +54,22 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   return state_array(dat, obj->n_state(), obj->n_particles());
 }
 
+double validate_time(cpp11::sexp r_time) {
+  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
+  if (time.size() != 1) {
+    cpp11::stop("expected 'time' to be a scalar value");
+  }
+  return time[0];
+}
+
+template <typename T>
+void mode_update_state(SEXP ptr, SEXP r_time) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  if (r_time != R_NilValue) {
+    auto time = validate_time(r_time);
+    obj->set_time(time);
+  }
+}
+
 }
 }
