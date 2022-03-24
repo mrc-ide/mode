@@ -6,12 +6,12 @@
 namespace mode {
 
 // Models need to bring their own implementation here
-template<typename T>
+template <typename T>
 typename mode::pars_type<T> mode_pars(cpp11::list pars);
 
 // TODO: consider a better name here, but using the same name as the
 // namespace does not end well...
-template<typename T>
+template <typename T>
 class container {
 public:
   using model_type = T;
@@ -68,7 +68,7 @@ private:
   // because otherwise we need to implement a default constructor for
   // the solver (something which we will then never use once we have
   // more than one system).
-  std::vector <solver<model_type>> solver_;
+  std::vector<solver<model_type>> solver_;
   size_t n_particles_;
   model_type m_;
 };
