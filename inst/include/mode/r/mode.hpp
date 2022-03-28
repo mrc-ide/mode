@@ -73,11 +73,12 @@ cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
   return dim;
 }
 
-cpp11::doubles validate_state(cpp11::sexp r_state,
+std::vector<double> validate_state(cpp11::sexp r_state,
                               int n_state,
                               int n_particles) {
-  cpp11::doubles state = cpp11::as_cpp<cpp11::doubles>(r_state);
-  auto dim = object_dimensions(state, n_state);
+  cpp11::doubles r_state_data = cpp11::as_cpp<cpp11::doubles>(r_state);
+  const size_t state_len = r_state_data.size();
+  auto dim = object_dimensions(r_state, n_state);
   if (dim.size() > 2) {
     cpp11::stop("Expected 'state' to have at most 2 dimensions");
   }
@@ -87,11 +88,13 @@ cpp11::doubles validate_state(cpp11::sexp r_state,
                   n_state, n_particles, dim[0], dim[1]);
     }
   }
-  if (dim.size() == 1 && state.size() != n_state) {
+  if (dim.size() == 1 && state_len != n_state) {
     cpp11::stop("Expected 'state' to be a vector of length %d but was length %d",
-                n_state, state.size());
+                n_state, state_len);
   }
-  return state;
+  std::vector<double> ret(state_len);
+  std::copy_n(REAL(r_state_data.data()), state_len, ret.begin());
+  return ret;
 }
 
 template <typename T>
@@ -105,7 +108,7 @@ void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time) {
     auto state = validate_state(r_state,
                                 static_cast<int>(obj->n_state()),
                                 static_cast<int>(obj->n_particles()));
-   // obj->set_state(state);
+    obj->set_state(state);
   }
 }
 

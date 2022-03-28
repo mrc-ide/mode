@@ -106,6 +106,10 @@ public:
     t_ = t;
   }
 
+  void set_state(std::vector<double>::const_iterator state) {
+    stepper_.set_state(t_, state);
+  }
+
   size_t size() {
     return size_;
   }

@@ -55,6 +55,15 @@ public:
     }
   }
 
+  void set_state(const std::vector<double>& state) {
+    const bool individual = state.size() == n_state() * n_particles_;
+    const size_t n = individual ? 1 : n_particles_;
+    auto it = state.begin();
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_state(it + (i / n) * n_state());
+    }
+  }
+
   void set_time(double time) {
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles_; ++i) {

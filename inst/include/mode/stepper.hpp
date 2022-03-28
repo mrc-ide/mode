@@ -121,6 +121,13 @@ public:
     m.rhs(t, y, k1);
   }
 
+  void set_state(double t, std::vector<double>::const_iterator state) {
+    for (size_t i = 0; i < n; ++i, ++state) {
+      y[i] = *state;
+    }
+    m.rhs(t, y, k1);
+  }
+
   void step_complete(double t, double h) {
     std::copy_n(k2.begin(), n, k1.begin()); // k1 = k2
     std::copy_n(y_next.begin(), n, y.begin()); // y = y_next
