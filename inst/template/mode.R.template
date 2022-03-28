@@ -39,7 +39,7 @@
 
     update_state = function(pars = NULL, state = NULL, time = NULL,
                             set_initial_state = NULL) {
-      mode_{{name}}_update_state(private$ptr_, time)
+      mode_{{name}}_update_state(private$ptr_, state, time)
     }
 
   ))

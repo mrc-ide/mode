@@ -18,6 +18,7 @@ cpp11::sexp mode_{{name}}_solve(SEXP ptr, int end_time) {
 }
 
 [[cpp11::register]]
-void mode_{{name}}_update_state(SEXP ptr, SEXP time) {
-  return mode::r::mode_update_state<mode::container<{{class}}>>(ptr, time);
+void mode_{{name}}_update_state(SEXP ptr, SEXP state, SEXP time) {
+  return mode::r::mode_update_state<mode::container<{{class}}>>(ptr,
+      state, time);
 }

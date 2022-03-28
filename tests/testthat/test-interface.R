@@ -28,7 +28,7 @@ test_that("End time must be later than initial time", {
   initial_time <- 5
   mod <- gen$new(pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  e <- "end_time (2.000000) must be greater than current time (5.000000)"
+  e <- "'end_time' (2.000000) must be greater than current time (5.000000)"
   expect_error(mod$solve(2), e, fixed = TRUE)
 })
 
@@ -81,5 +81,29 @@ test_that("Can only update time for all particles at once", {
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
   expect_error(mod$update_state(time = c(1, 2, 3, 4, 5)),
-               "expected 'time' to be a scalar value")
+               "Expected 'time' to be a scalar value")
+})
+
+test_that("Error if state vector does not have correct length", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  mod <- gen$new(pars, 1, n_particles)
+  expect_error(mod$update_state(state = c(1, 2, 3, 4, 5)),
+               "Expected 'state' to be a vector of length 2 but was length 5")
+})
+
+test_that("Error if state matrix does not have correct dimensions", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  mod <- gen$new(pars, 1, n_particles)
+  # check wrong ncol
+  expect_error(mod$update_state(state = matrix(1, nrow = 2, ncol = 3)),
+               "Expected 'state' to be a 2 by 5 matrix but was 2 by 3")
+  # check wrong nrow
+  expect_error(mod$update_state(state = matrix(1, nrow = 3, ncol = 5)),
+               "Expected 'state' to be a 2 by 5 matrix but was 3 by 5")
 })
