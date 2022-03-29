@@ -54,12 +54,14 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   return state_array(dat, obj->n_state(), obj->n_particles());
 }
 
-double validate_time(cpp11::sexp r_time) {
+std::vector<double> validate_time(cpp11::sexp r_time) {
   cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
   if (time.size() != 1) {
     cpp11::stop("Expected 'time' to be a scalar value");
   }
-  return time[0];
+  std::vector<double> ret(1);
+  std::copy_n(REAL(time.data()), 1, ret.begin());
+  return ret;
 }
 
 cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
@@ -88,7 +90,7 @@ std::vector<double> validate_state(cpp11::sexp r_state,
                   n_state, n_particles, dim[0], dim[1]);
     }
   }
-  if (dim.size() == 1 && state_len != n_state) {
+  if (dim.size() == 1 && static_cast<int>(state_len) != n_state) {
     cpp11::stop("Expected 'state' to be a vector of length %d but was length %d",
                 n_state, state_len);
   }
@@ -98,18 +100,41 @@ std::vector<double> validate_state(cpp11::sexp r_state,
 }
 
 template <typename T>
-void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time) {
+void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
+                       SEXP r_set_initial_state,
+                       SEXP r_reset_step_size) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+
+  bool set_initial_state = false;
+  if (r_set_initial_state == R_NilValue) {
+    set_initial_state = r_state == R_NilValue &&
+                        r_time != R_NilValue;
+  } else {
+    set_initial_state = cpp11::as_cpp<bool>(r_set_initial_state);
+    if (set_initial_state && r_state != R_NilValue) {
+      cpp11::stop("'set_initial_state' cannot be TRUE unless 'state' is NULL");
+    }
+  }
+
+  bool reset_step_size = false;
+  if (r_reset_step_size == R_NilValue) {
+    reset_step_size = r_time != R_NilValue;
+  } else {
+    reset_step_size = cpp11::as_cpp<bool>(r_reset_step_size);
+  }
+
+  std::vector<double> time;
+  std::vector<double> state;
+
   if (r_time != R_NilValue) {
-    auto time = validate_time(r_time);
-    obj->set_time(time);
+    time = validate_time(r_time);
   }
   if (r_state != R_NilValue) {
-    auto state = validate_state(r_state,
-                                static_cast<int>(obj->n_state()),
-                                static_cast<int>(obj->n_particles()));
-    obj->set_state(state);
+    state = validate_state(r_state,
+                           static_cast<int>(obj->n_state()),
+                           static_cast<int>(obj->n_particles()));
   }
+  obj->update_state(time, state, set_initial_state, reset_step_size);
 }
 
 }

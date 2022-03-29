@@ -55,19 +55,37 @@ public:
     }
   }
 
-  void set_state(const std::vector<double>& state) {
-    const bool individual = state.size() == n_state() * n_particles_;
-    const size_t n = individual ? 1 : n_particles_;
-    auto it = state.begin();
-    for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].set_state(it + (i / n) * n_state());
+  void update_state(std::vector<double> time,
+                    const std::vector<double>& state,
+                    bool set_initial_state,
+                    bool reset_step_size) {
+    auto t = solver_[0].time();
+    if (time.size() > 0) {
+      t = time[0];
     }
-  }
-
-  void set_time(double time) {
-    auto y = m_.initial(time);
-    for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].reset(time, y);
+    if (state.size() > 0) {
+      const bool individual = state.size() == n_state() * n_particles_;
+      auto it = state.begin();
+      for (size_t i = 0; i < n_particles_; ++i) {
+        solver_[i].set_state(t, it, reset_step_size);
+        if (individual) {
+          it += n_state();
+        }
+      }
+    }
+    else if (set_initial_state) {
+      auto y = m_.initial(t);
+      for (size_t i = 0; i < n_particles_; ++i) {
+        solver_[i].reset(t, y, reset_step_size);
+      }
+    }
+    else {
+      for (size_t i = 0; i < n_particles_; ++i) {
+        solver_[i].set_time(t);
+        if (reset_step_size) {
+          solver_[i].set_initial_step_size(t);
+        }
+      }
     }
   }
 

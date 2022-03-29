@@ -26,7 +26,7 @@ public:
                                                                   stepper_(m),
                                                                   size_(
                                                                       m.size()) {
-    reset(t, y);
+    reset(t, y, true);
   }
 
   double time() const {
@@ -99,15 +99,36 @@ public:
     }
   }
 
-  void reset(double t, std::vector<double> y) {
-    stepper_.reset(t, y);
+  void reset(double t,
+             std::vector<double> y,
+             bool reset_step_size) {
+    set_time(t);
+    stepper_.set_state(t, y);
+    if (reset_step_size) {
+      set_initial_step_size(t);
+    }
+  }
+
+  void set_time(double t) {
     stats_.reset();
-    h_ = initial_step_size(m_, t, y, ctl_);
     t_ = t;
   }
 
-  void set_state(std::vector<double>::const_iterator state) {
-    stepper_.set_state(t_, state);
+  void set_initial_step_size(double t) {
+    h_ = initial_step_size(m_, t, stepper_.output(), ctl_);
+  }
+
+  void set_state(double t,
+                 std::vector<double>::const_iterator state,
+                 bool reset_step_size) {
+    if (t != t_) {
+      set_time(t);
+    }
+
+    stepper_.set_state(t, state);
+    if (reset_step_size) {
+      set_initial_step_size(t);
+    }
   }
 
   size_t size() {
