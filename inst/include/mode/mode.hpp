@@ -55,6 +55,13 @@ public:
     }
   }
 
+  void statistics(std::vector<size_t> &all_stats) {
+    auto it = all_stats.begin();
+    for (size_t i = 0; i < n_particles_; ++i) {
+      it = solver_[i].statistics(it);
+    }
+  }
+
   void set_time(double time) {
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles_; ++i) {
