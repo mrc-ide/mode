@@ -18,6 +18,9 @@ test_that("Returned state has correct dimensions", {
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$solve(2)
   expect_equal(dim(res), c(2, n_particles))
+
+  state <- mod$state()
+  expect_identical(res, state)
 })
 
 test_that("End time must be later than initial time", {

@@ -23,6 +23,7 @@ test_that("Can only update time for all particles at once", {
   mod <- gen$new(pars, initial_time, n_particles)
   expect_error(mod$update_state(time = c(1, 2, 3, 4, 5)),
                "Expected 'time' to be a scalar value")
+  expect_equal(mod$time(), initial_time)
 })
 
 test_that(
@@ -110,11 +111,7 @@ test_that("Can update state with a vector", {
   prev_state <- res[, 1, 10]
   new_state <- prev_state + 10
   mod$update_state(state = new_state)
-  analytic <- logistic_analytic(r, k, 1:5, new_state)
-  res <- vapply(11:15, function(t) mod$solve(t),
-                matrix(0.0, 2, n_particles))
-  expect_equal(analytic, res[, 1, ], tolerance = 1e-7)
-  expect_identical(res, res[, rep(1, 2), ])
+  expect_identical(mod$state(), matrix(new_state, nrow = 2, ncol = 2))
 })
 
 test_that("Can update state with a matrix", {
@@ -131,12 +128,22 @@ test_that("Can update state with a matrix", {
   prev_state <- res[, 1, 10]
   new_state <- cbind(prev_state + 10, prev_state + 11, prev_state + 12)
   mod$update_state(state = new_state)
-  analytic_1 <- logistic_analytic(r, k, 1:5, new_state[, 1])
-  analytic_2 <- logistic_analytic(r, k, 1:5, new_state[, 2])
-  analytic_3 <- logistic_analytic(r, k, 1:5, new_state[, 3])
-  res <- vapply(11:15, function(t) mod$solve(t),
-                matrix(0.0, 2, n_particles))
-  expect_equal(analytic_1, res[, 1, ], tolerance = 1e-7)
-  expect_equal(analytic_2, res[, 2, ], tolerance = 1e-7)
-  expect_equal(analytic_3, res[, 3, ], tolerance = 1e-7)
+  expect_identical(mod$state(), new_state)
+})
+
+test_that("Nothing happens if any parameters are invalid", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  initial_state <- mod$state()
+  expect_error(mod$update_state(state = c(1, 2, 3), time = 5),
+               "Expected 'state' to be a vector of length 2 but was length 3")
+  expect_equal(mod$time(), initial_time)
+
+  expect_error(mod$update_state(state = c(1, 2), time = c(1, 2)),
+                                "Expected 'time' to be a scalar value")
+  expect_equal(mod$state(), initial_state)
 })

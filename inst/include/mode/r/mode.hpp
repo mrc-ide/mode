@@ -54,6 +54,14 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   return state_array(dat, obj->n_state(), obj->n_particles());
 }
 
+template <typename T>
+cpp11::sexp mode_state(SEXP ptr) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  std::vector<double> dat(obj->n_state() * obj->n_particles());
+  obj->state(dat);
+  return state_array(dat, obj->n_state(), obj->n_particles());
+}
+
 std::vector<double> validate_time(cpp11::sexp r_time) {
   cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
   if (time.size() != 1) {
