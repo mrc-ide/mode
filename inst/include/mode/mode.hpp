@@ -20,9 +20,6 @@ public:
   container(const pars_type &pars, const double time,
             const size_t n_particles) : n_particles_(n_particles),
                                         m_(model_type(pars)) {
-    // This will get considerably more complicated once we move to
-    // support multiple particles, and following the general approach
-    // in dust will be sensible, I think.
     auto ctl = control();
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
@@ -67,34 +64,35 @@ public:
       const bool individual = state.size() == n_state() * n_particles_;
       auto it = state.begin();
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_state(t, it, reset_step_size);
+        solver_[i].set_time(t);
+        solver_[i].set_state(t, it);
+        if (reset_step_size) {
+          solver_[i].set_initial_step_size();
+        }
         if (individual) {
           it += n_state();
         }
       }
-    }
-    else if (set_initial_state) {
+    } else if (set_initial_state) {
       auto y = m_.initial(t);
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].reset(t, y, reset_step_size);
+        solver_[i].set_time(t);
+        solver_[i].set_state(t, y);
+        if (reset_step_size) {
+          solver_[i].set_initial_step_size();
+        }
       }
-    }
-    else {
+    } else {
       for (size_t i = 0; i < n_particles_; ++i) {
         solver_[i].set_time(t);
         if (reset_step_size) {
-          solver_[i].set_initial_step_size(t);
+          solver_[i].set_initial_step_size();
         }
       }
     }
   }
 
 private:
-  // NOTE: We're going to have a vector of solvers eventually, but
-  // it's also quite hard to set this up to hold a single 'solver'
-  // because otherwise we need to implement a default constructor for
-  // the solver (something which we will then never use once we have
-  // more than one system).
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
   model_type m_;

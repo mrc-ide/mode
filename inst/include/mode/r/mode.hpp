@@ -63,6 +63,9 @@ cpp11::sexp mode_state(SEXP ptr) {
 }
 
 std::vector<double> validate_time(cpp11::sexp r_time) {
+  if (r_time == R_NilValue) {
+    return std::vector<double>(0);
+  }
   cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
   if (time.size() != 1) {
     cpp11::stop("Expected 'time' to be a scalar value");
@@ -86,6 +89,9 @@ cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
 std::vector<double> validate_state(cpp11::sexp r_state,
                               int n_state,
                               int n_particles) {
+  if (r_state == R_NilValue) {
+    return std::vector<double>(0);
+  }
   cpp11::doubles r_state_data = cpp11::as_cpp<cpp11::doubles>(r_state);
   const size_t state_len = r_state_data.size();
   auto dim = object_dimensions(r_state, n_state);
@@ -107,12 +113,8 @@ std::vector<double> validate_state(cpp11::sexp r_state,
   return ret;
 }
 
-template <typename T>
-void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
-                       SEXP r_set_initial_state,
-                       SEXP r_reset_step_size) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-
+bool validate_set_initial_state(SEXP r_state, SEXP r_time,
+                                SEXP r_set_initial_state) {
   bool set_initial_state = false;
   if (r_set_initial_state == R_NilValue) {
     set_initial_state = r_state == R_NilValue &&
@@ -123,25 +125,34 @@ void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
       cpp11::stop("'set_initial_state' cannot be TRUE unless 'state' is NULL");
     }
   }
+  return set_initial_state;
+}
 
+bool validate_reset_step_size(SEXP r_time, SEXP r_reset_step_size) {
   bool reset_step_size = false;
   if (r_reset_step_size == R_NilValue) {
     reset_step_size = r_time != R_NilValue;
   } else {
     reset_step_size = cpp11::as_cpp<bool>(r_reset_step_size);
   }
+  return reset_step_size;
+}
 
-  std::vector<double> time;
-  std::vector<double> state;
+template <typename T>
+void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
+                       SEXP r_set_initial_state,
+                       SEXP r_reset_step_size) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
 
-  if (r_time != R_NilValue) {
-    time = validate_time(r_time);
-  }
-  if (r_state != R_NilValue) {
-    state = validate_state(r_state,
+  auto set_initial_state = validate_set_initial_state(r_state,
+                                                      r_time,
+                                                      r_set_initial_state);
+
+  auto reset_step_size = validate_reset_step_size(r_time, r_reset_step_size);
+  auto time = validate_time(r_time);
+  auto state = validate_state(r_state,
                            static_cast<int>(obj->n_state()),
                            static_cast<int>(obj->n_particles()));
-  }
   obj->update_state(time, state, set_initial_state, reset_step_size);
 }
 

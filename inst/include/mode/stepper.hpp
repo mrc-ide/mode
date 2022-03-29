@@ -114,13 +114,6 @@ public:
     return std::sqrt(err / n);
   }
 
-  void set_state(double t, std::vector<double> y0) {
-    for (size_t i = 0; i < n; ++i) {
-      y[i] = y0[i];
-    }
-    m.rhs(t, y, k1);
-  }
-
   void set_state(double t, std::vector<double>::const_iterator state) {
     for (size_t i = 0; i < n; ++i, ++state) {
       y[i] = *state;
