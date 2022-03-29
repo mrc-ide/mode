@@ -117,5 +117,16 @@ public:
     }
     return end_state;
   }
+
+  std::vector<size_t>::iterator
+  statistics(std::vector<size_t>::iterator all_stats) const {
+    *all_stats = stats_.n_steps;
+    all_stats++;
+    *all_stats = stats_.n_steps_accepted;
+    all_stats++;
+    *all_stats = stats_.n_steps_rejected;
+    all_stats++;
+    return all_stats;
+  }
 };
 }
