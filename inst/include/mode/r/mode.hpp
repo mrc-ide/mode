@@ -53,14 +53,14 @@ cpp11::sexp stats_array(const std::vector<size_t>& dat,
 }
 
 template <typename T>
-cpp11::sexp mode_solve(SEXP ptr, double end_time) {
+cpp11::sexp mode_run(SEXP ptr, double end_time) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   auto time = obj->time();
   if (end_time < time) {
     cpp11::stop("'end_time' (%f) must be greater than current time (%f)",
                 end_time, time);
   }
-  obj->solve(end_time);
+  obj->run(end_time);
 
   std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
