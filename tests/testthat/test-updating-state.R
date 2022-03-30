@@ -46,6 +46,20 @@ test_that(
   expect_false(identical(res, res3))
 })
 
+test_that("Updating time resets statistics", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  res <- mod$solve(5)
+  expect_false(all(mod$statistics() == 0))
+
+  mod$update_state(time = initial_time)
+  expect_true(all(mod$statistics() == 0))
+})
+
 test_that("Updating time does not reset state if new state is provided", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
@@ -129,6 +143,21 @@ test_that("Can update state with a matrix", {
   new_state <- cbind(prev_state + 10, prev_state + 11, prev_state + 12)
   mod$update_state(state = new_state)
   expect_identical(mod$state(), new_state)
+})
+
+test_that("Updating state does not reset statistics", {
+  y0 <- c(1, 1)
+  r <- c(0.1, 0.2)
+  k <- c(100, 100)
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
+  n_particles <- 2
+  mod <- gen$new(pars, 0, n_particles)
+  res <- mod$solve(2)
+  stats <- mod$statistics()
+  mod$update_state(state = c(2, 2))
+  expect_identical(stats, mod$statistics())
 })
 
 test_that("Nothing happens if any parameters are invalid", {
