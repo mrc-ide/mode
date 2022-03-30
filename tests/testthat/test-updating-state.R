@@ -6,11 +6,11 @@ test_that("Can update time", {
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  res <- mod$solve(5)
+  res <- mod$run(5)
   expect_equal(mod$time(), 5)
   mod$update_state(time = initial_time)
   expect_equal(mod$time(), initial_time)
-  res2 <- mod$solve(5)
+  res2 <- mod$run(5)
   expect_identical(res, res2)
 })
 
@@ -33,15 +33,15 @@ test_that(
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   initial_time <- 1
   mod <- gen$new(pars, initial_time, 5)
-  res <- mod$solve(5)
+  res <- mod$run(5)
 
   mod$update_state(time = initial_time)
-  res2 <- mod$solve(5)
+  res2 <- mod$run(5)
   # expect results to be identical because state was reset
   expect_true(identical(res, res2))
 
   mod$update_state(time = initial_time, set_initial_state = FALSE)
-  res3 <- mod$solve(5)
+  res3 <- mod$run(5)
   # expect results to be different because state was not reset
   expect_false(identical(res, res3))
 })
@@ -53,7 +53,7 @@ test_that("Updating time resets statistics", {
   n_particles <- 5
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
-  res <- mod$solve(5)
+  res <- mod$run(5)
   expect_false(all(mod$statistics() == 0))
 
   mod$update_state(time = initial_time)
@@ -68,10 +68,10 @@ test_that("Updating time does not reset state if new state is provided", {
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  res_t2 <- mod$solve(2)
-  res_t3 <- mod$solve(3)
+  res_t2 <- mod$run(2)
+  res_t3 <- mod$run(3)
   mod$update_state(time = initial_time, state = res_t2[, 1])
-  res2_t2 <- mod$solve(2)
+  res2_t2 <- mod$run(2)
   expect_equal(res_t3, res2_t2, tolerance = 1e-7)
 })
 
@@ -120,7 +120,7 @@ test_that("Can update state with a vector", {
   pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
   n_particles <- 2
   mod <- gen$new(pars, 0, n_particles)
-  res <- vapply(1:10, function(t) mod$solve(t),
+  res <- vapply(1:10, function(t) mod$run(t),
                 matrix(0.0, 2, n_particles))
   prev_state <- res[, 1, 10]
   new_state <- prev_state + 10
@@ -137,7 +137,7 @@ test_that("Can update state with a matrix", {
   pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
   n_particles <- 3
   mod <- gen$new(pars, 0, n_particles)
-  res <- vapply(1:10, function(t) mod$solve(t),
+  res <- vapply(1:10, function(t) mod$run(t),
                 matrix(0.0, 2, n_particles))
   prev_state <- res[, 1, 10]
   new_state <- cbind(prev_state + 10, prev_state + 11, prev_state + 12)
@@ -154,7 +154,7 @@ test_that("Updating state does not reset statistics", {
   pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
   n_particles <- 2
   mod <- gen$new(pars, 0, n_particles)
-  res <- mod$solve(2)
+  res <- mod$run(2)
   stats <- mod$statistics()
   mod$update_state(state = c(2, 2))
   expect_identical(stats, mod$statistics())
