@@ -30,7 +30,7 @@ test_that("Only returns state for given index", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   mod$set_index(1)
-  res <- mod$solve(2)
+  res <- mod$run(2)
   expect_equal(dim(res), c(1, n_particles))
 
   state <- mod$state()
@@ -44,7 +44,7 @@ test_that("Can set vector index", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   mod$set_index(c(1, 2))
-  res <- mod$solve(2)
+  res <- mod$run(2)
   expect_equal(dim(res), c(2, n_particles))
 })
 
@@ -70,7 +70,7 @@ test_that("Setting a named index returns names", {
   analytic <- logistic_analytic(r, k, 1, c(1, 1))
   mod$set_index(c(y1 = 1L, y2 = 2L))
   expect_equal(
-    mod$solve(1),
+    mod$run(1),
     rbind(y1 = rep(analytic[1, ], n_particles),
           y2 = rep(analytic[2, ], n_particles)),
     tolerance = 1e-7)
