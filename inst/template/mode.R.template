@@ -40,8 +40,14 @@
       invisible()
     },
 
+    index = function() {
+      private$index_
+    },
+
     solve = function(end_time) {
-      mode_{{name}}_solve(private$ptr_, end_time)
+      m <- mode_{{name}}_solve(private$ptr_, end_time)
+      rownames(m) <- names(private$index_)
+      m
     },
 
     statistics = function() {

@@ -34,7 +34,63 @@ test_that("Only returns state for given index", {
   expect_equal(dim(res), c(1, n_particles))
 
   state <- mod$state()
-  expect_identical(res, state[1, , drop = F])
+  expect_identical(res, state[1, , drop = FALSE])
+})
+
+test_that("Can set vector index", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  mod$set_index(c(1, 2))
+  res <- mod$solve(2)
+  expect_equal(dim(res), c(2, n_particles))
+})
+
+test_that("Can retrieve index", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  expect_equal(NULL, mod$index())
+  mod$set_index(c(1, 2))
+  expect_equal(c(1, 2), mod$index())
+})
+
+test_that("Setting a named index returns names", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  r <- c(0.1, 0.2)
+  k <- c(100, 100)
+  pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = k[[1]], K2 = k[[2]])
+  n_particles <- 5
+  mod <- gen$new(pars, 0, n_particles)
+  analytic <- logistic_analytic(r, k, 1, c(1, 1))
+  mod$set_index(c(y1 = 1L, y2 = 2L))
+  expect_equal(
+    mod$solve(1),
+    rbind(y1 = rep(analytic[1, ], n_particles),
+          y2 = rep(analytic[2, ], n_particles)),
+    tolerance = 1e-7)
+})
+
+test_that("Cannot set invalid index", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  expect_error(mod$set_index(0),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
+  expect_error(mod$set_index(3),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
+  expect_error(mod$set_index(c(1, 2, 3)),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
 })
 
 test_that("End time must be later than initial time", {
