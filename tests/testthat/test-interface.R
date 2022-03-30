@@ -77,3 +77,21 @@ test_that("Can retrieve statistics", {
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
 })
+
+test_that("Can retrieve statistics", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  mod <- gen$new(pars, 1, n_particles)
+  stats <- mod$statistics()
+  expect_equal(dim(stats), c(3, n_particles))
+  expect_equal(row.names(stats),
+               c("n_steps", "n_steps_accepted", "n_steps_rejected"))
+  expect_s3_class(stats, "mode_statistics")
+  expect_true(all(stats == 0))
+  lapply(1:10, function(t) mod$solve(t))
+  stats <- mod$statistics()
+  expect_true(all(stats == stats[, rep(1, n_particles)]))
+  expect_true(all(stats["n_steps", ] > 0))
+})

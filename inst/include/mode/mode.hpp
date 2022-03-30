@@ -99,6 +99,7 @@ public:
     }
   }
 
+
 private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
