@@ -23,6 +23,11 @@ cpp11::sexp mode_{{name}}_state(SEXP ptr) {
 }
 
 [[cpp11::register]]
+cpp11::sexp mode_{{name}}_stats(SEXP ptr) {
+  return mode::r::mode_stats<mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
 void mode_{{name}}_update_state(SEXP ptr, SEXP state, SEXP time,
                                 SEXP set_initial_state,
                                 SEXP reset_step_size) {

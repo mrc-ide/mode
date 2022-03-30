@@ -39,6 +39,19 @@ cpp11::sexp state_array(const std::vector<double>& dat,
   return ret;
 }
 
+cpp11::sexp stats_array(const std::vector<size_t>& dat,
+                        size_t n_particles) {
+  cpp11::writable::integers ret(dat.size());
+  std::copy(dat.begin(), dat.end(), ret.begin());
+  ret.attr("dim") = cpp11::writable::integers{3, static_cast<int>(n_particles)};
+  ret.attr("class") = "mode_statistics";
+  auto row_names = cpp11::writable::strings{"n_steps",
+                                            "n_steps_accepted",
+                                            "n_steps_rejected"};
+  ret.attr("dimnames") = cpp11::writable::list{row_names, R_NilValue};
+  return ret;
+}
+
 template <typename T>
 cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
@@ -60,6 +73,14 @@ cpp11::sexp mode_state(SEXP ptr) {
   std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
   return state_array(dat, obj->n_state(), obj->n_particles());
+}
+
+template <typename T>
+cpp11::sexp mode_stats(SEXP ptr) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  std::vector<size_t> dat(3 * obj->n_particles());
+  obj->statistics(dat);
+  return stats_array(dat, obj->n_particles());
 }
 
 std::vector<double> validate_time(cpp11::sexp r_time) {
@@ -87,8 +108,8 @@ cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
 }
 
 std::vector<double> validate_state(cpp11::sexp r_state,
-                              int n_state,
-                              int n_particles) {
+                                   int n_state,
+                                   int n_particles) {
   if (r_state == R_NilValue) {
     return std::vector<double>(0);
   }
