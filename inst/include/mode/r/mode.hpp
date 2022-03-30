@@ -31,10 +31,15 @@ double mode_time(SEXP ptr) {
 template <typename T>
 void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  const size_t index_max = obj->n_state_full();
-  const std::vector<size_t> index =
-      mode::r::r_index_to_index(r_index, index_max);
-  obj->set_index(index);
+  if (r_index == R_NilValue) {
+    obj->initialise_index();
+  }
+  else {
+    const size_t index_max = obj->n_state_full();
+    const std::vector <size_t> index =
+        mode::r::r_index_to_index(r_index, index_max);
+    obj->set_index(index);
+  }
 }
 
 template <typename T>

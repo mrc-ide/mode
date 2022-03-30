@@ -76,6 +76,30 @@ test_that("Setting a named index returns names", {
     tolerance = 1e-7)
 })
 
+test_that("Can clear index", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  r <- c(0.1, 0.2)
+  k <- c(100, 100)
+  pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = k[[1]], K2 = k[[2]])
+  n_particles <- 5
+  mod <- gen$new(pars, 0, n_particles)
+  analytic <- logistic_analytic(r, k, 1:2, c(1, 1))
+  mod$set_index(c(y1 = 1L))
+  expect_equal(
+    mod$run(1),
+    rbind(y1 = rep(analytic[1, 1], n_particles)),
+    tolerance = 1e-7)
+  expect_equal(mod$index(), c(y1 = 1L))
+  mod$set_index(NULL)
+  expect_equal(
+    mod$run(2),
+    rbind(rep(analytic[1, 2], n_particles),
+          rep(analytic[2, 2], n_particles)),
+    tolerance = 1e-7)
+  expect_null(mod$index())
+})
+
 test_that("Cannot set invalid index", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)

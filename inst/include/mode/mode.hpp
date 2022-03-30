@@ -44,6 +44,15 @@ public:
     index_ = index;
   }
 
+  void initialise_index() {
+    const size_t n = n_state_full();
+    index_.clear();
+    index_.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+      index_.push_back(i);
+    }
+  }
+
   double time() {
     return solver_[0].time();
   }
@@ -106,21 +115,11 @@ public:
     }
   }
 
-
 private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
   model_type m_;
   std::vector<size_t> index_;
-
-  void initialise_index() {
-    const size_t n = n_state_full();
-    index_.clear();
-    index_.reserve(n);
-    for (size_t i = 0; i < n; ++i) {
-      index_.push_back(i);
-    }
-  }
 };
 
 }
