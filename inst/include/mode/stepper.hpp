@@ -114,9 +114,9 @@ public:
     return std::sqrt(err / n);
   }
 
-  void reset(double t, std::vector<double> y0) {
-    for (size_t i = 0; i < n; ++i) {
-      y[i] = y0[i];
+  void set_state(double t, std::vector<double>::const_iterator state) {
+    for (size_t i = 0; i < n; ++i, ++state) {
+      y[i] = *state;
     }
     m.rhs(t, y, k1);
   }

@@ -18,6 +18,9 @@ test_that("Returned state has correct dimensions", {
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$solve(2)
   expect_equal(dim(res), c(2, n_particles))
+
+  state <- mod$state()
+  expect_identical(res, state)
 })
 
 test_that("End time must be later than initial time", {
@@ -28,7 +31,7 @@ test_that("End time must be later than initial time", {
   initial_time <- 5
   mod <- gen$new(pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  e <- "end_time (2.000000) must be greater than current time (5.000000)"
+  e <- "'end_time' (2.000000) must be greater than current time (5.000000)"
   expect_error(mod$solve(2), e, fixed = TRUE)
 })
 
@@ -57,31 +60,22 @@ test_that("cache hits don't compile", {
   expect_identical(gen3, gen)
 })
 
-test_that("Can update time", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
-  n_particles <- 10
-  initial_time <- 1
-  mod <- gen$new(pars, initial_time, n_particles)
-  expect_equal(mod$time(), initial_time)
-  res <- mod$solve(5)
-  expect_equal(mod$time(), 5)
-  mod$update_state(time = initial_time)
-  expect_equal(mod$time(), initial_time)
-  res2 <- mod$solve(5)
-  expect_identical(res, res2)
-})
-
-test_that("Can only update time for all particles at once", {
+test_that("Can retrieve statistics", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 5
-  initial_time <- 1
-  mod <- gen$new(pars, initial_time, n_particles)
-  expect_error(mod$update_state(time = c(1, 2, 3, 4, 5)),
-               "expected 'time' to be a scalar value")
+  mod <- gen$new(pars, 1, n_particles)
+  stats <- mod$statistics()
+  expect_equal(dim(stats), c(3, n_particles))
+  expect_equal(row.names(stats),
+               c("n_steps", "n_steps_accepted", "n_steps_rejected"))
+  expect_s3_class(stats, "mode_statistics")
+  expect_true(all(stats == 0))
+  lapply(1:10, function(t) mod$solve(t))
+  stats <- mod$statistics()
+  expect_true(all(stats == stats[, rep(1, n_particles)]))
+  expect_true(all(stats["n_steps", ] > 0))
 })
 
 test_that("Can retrieve statistics", {

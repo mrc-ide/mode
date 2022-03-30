@@ -42,8 +42,13 @@
     },
 
     update_state = function(pars = NULL, state = NULL, time = NULL,
-                            set_initial_state = NULL) {
-      mode_{{name}}_update_state(private$ptr_, time)
+                            set_initial_state = NULL, reset_step_size = NULL) {
+      mode_{{name}}_update_state(private$ptr_, state, time,
+                                 set_initial_state, reset_step_size)
+    },
+
+    state = function() {
+      mode_{{name}}_state(private$ptr_)
     }
 
   ))

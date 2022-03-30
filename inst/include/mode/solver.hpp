@@ -20,13 +20,17 @@ private:
   stepper<Model> stepper_;
   size_t size_;
 public:
-  solver(Model m, double t, std::vector<double> y, control ctl) : m_(m),
-                                                                  t_(t),
-                                                                  ctl_(ctl),
-                                                                  stepper_(m),
-                                                                  size_(
-                                                                      m.size()) {
-    reset(t, y);
+  solver(Model m,
+         double t,
+         std::vector<double> y,
+         control ctl) : m_(m),
+                        t_(t),
+                        ctl_(ctl),
+                        stepper_(m),
+                        size_(m.size()) {
+    stats_.reset();
+    set_state(t, y);
+    set_initial_step_size();
   }
 
   double time() const {
@@ -99,11 +103,28 @@ public:
     }
   }
 
-  void reset(double t, std::vector<double> y) {
-    stepper_.reset(t, y);
-    stats_.reset();
-    h_ = initial_step_size(m_, t, y, ctl_);
-    t_ = t;
+  void set_time(double t, bool reset_step_size) {
+    if (t != t_) {
+      stats_.reset();
+      t_ = t;
+    }
+    if (reset_step_size) {
+      set_initial_step_size();
+    }
+  }
+
+  void set_initial_step_size() {
+    h_ = initial_step_size(m_, t_, stepper_.output(), ctl_);
+  }
+
+  void set_state(double t,
+                 std::vector<double>::const_iterator state) {
+    stepper_.set_state(t, state);
+  }
+
+  void set_state(double t,
+                 const std::vector<double> &state) {
+    set_state(t, state.begin());
   }
 
   size_t size() {
