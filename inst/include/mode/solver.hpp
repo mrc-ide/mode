@@ -132,9 +132,20 @@ public:
   }
 
   std::vector<double>::iterator
-  state(std::vector<double>::iterator end_state) const {
+  state(const std::vector<size_t>& index,
+             std::vector<double>::iterator end_state) const {
+    auto y = stepper_.output();
+    for (size_t i = 0; i < index.size(); ++i, end_state++) {
+      *end_state = y[index[i]];
+    }
+    return end_state;
+  }
+
+  std::vector<double>::iterator
+  state_full(std::vector<double>::iterator end_state) const {
+    auto y = stepper_.output();
     for (size_t i = 0; i < size_; ++i, end_state++) {
-      *end_state = stepper_.output()[i];
+      *end_state = y[i];
     }
     return end_state;
   }

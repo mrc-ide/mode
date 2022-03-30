@@ -25,14 +25,23 @@ public:
     for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m_, time, y, ctl));
     }
+    initialise_index();
   }
 
   size_t n_particles() {
     return n_particles_;
   }
 
-  size_t n_state() {
+  size_t n_state_full() {
     return solver_[0].size();
+  }
+
+  size_t n_state() const {
+    return index_.size();
+  }
+
+  void set_index(const std::vector<size_t>& index) {
+    index_ = index;
   }
 
   double time() {
@@ -45,10 +54,17 @@ public:
     }
   }
 
+  void state_full(std::vector<double> &end_state) {
+    auto it = end_state.begin();
+    for (size_t i = 0; i < n_particles_; ++i) {
+      it = solver_[i].state_full(it);
+    }
+  }
+
   void state(std::vector<double> &end_state) {
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
-      it = solver_[i].state(it);
+      it = solver_[i].state(index_, it);
     }
   }
 
@@ -61,13 +77,13 @@ public:
       t = time[0];
     }
     if (state.size() > 0) {
-      const bool individual = state.size() == n_state() * n_particles_;
+      const bool individual = state.size() == n_state_full() * n_particles_;
       auto it = state.begin();
       for (size_t i = 0; i < n_particles_; ++i) {
         solver_[i].set_state(t, it);
         solver_[i].set_time(t, reset_step_size);
         if (individual) {
-          it += n_state();
+          it += n_state_full();
         }
       }
     } else if (set_initial_state) {
@@ -95,6 +111,16 @@ private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
   model_type m_;
+  std::vector<size_t> index_;
+
+  void initialise_index() {
+    const size_t n = n_state_full();
+    index_.clear();
+    index_.reserve(n);
+    for (size_t i = 0; i < n; ++i) {
+      index_.push_back(i);
+    }
+  }
 };
 
 }

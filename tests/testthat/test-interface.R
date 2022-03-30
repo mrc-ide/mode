@@ -10,7 +10,7 @@ test_that("Can compile a simple model", {
   expect_equal(mod$n_particles(), n_particles)
 })
 
-test_that("Returned state has correct dimensions", {
+test_that("Returns full state when no index given", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
@@ -21,6 +21,20 @@ test_that("Returned state has correct dimensions", {
 
   state <- mod$state()
   expect_identical(res, state)
+})
+
+test_that("Only returns state for given index", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  mod$set_index(1)
+  res <- mod$solve(2)
+  expect_equal(dim(res), c(1, n_particles))
+
+  state <- mod$state()
+  expect_identical(res, state[1, , drop = F])
 })
 
 test_that("End time must be later than initial time", {

@@ -52,6 +52,55 @@ cpp11::sexp stats_array(const std::vector<size_t>& dat,
   return ret;
 }
 
+int r_index_check(int x, int max) {
+  if (x < 1 || x > max) {
+    cpp11::stop("All elements of 'index' must lie in [1, %d]", max);
+  }
+  return x - 1;
+}
+
+cpp11::integers as_integer(cpp11::sexp x, const char * name) {
+  if (TYPEOF(x) == INTSXP) {
+    return cpp11::as_cpp<cpp11::integers>(x);
+  } else if (TYPEOF(x) == REALSXP) {
+    cpp11::doubles xn = cpp11::as_cpp<cpp11::doubles>(x);
+    size_t len = xn.size();
+    cpp11::writable::integers ret = cpp11::writable::integers(len);
+    for (size_t i = 0; i < len; ++i) {
+      double el = xn[i];
+      if (!cpp11::is_convertable_without_loss_to_integer(el)) {
+        cpp11::stop("All elements of '%s' must be integer-like",
+                    name, i + 1);
+      }
+      ret[i] = static_cast<int>(el);
+    }
+    return ret;
+  } else {
+    cpp11::stop("Expected a numeric vector for '%s'", name);
+    return cpp11::integers(); // never reached
+  }
+}
+
+std::vector<size_t> r_index_to_index(cpp11::sexp r_index, size_t nmax) {
+  cpp11::integers r_index_int = as_integer(r_index, "index");
+  const int n = r_index_int.size();
+  std::vector<size_t> index;
+  index.reserve(n);
+  for (int i = 0; i < n; ++i) {
+    int x = r_index_check(r_index_int[i], nmax);
+    index.push_back(x);
+  }
+  return index;
+}
+
+template <typename T>
+void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const size_t index_max = obj->n_state_full();
+  const std::vector<size_t> index = r_index_to_index(r_index, index_max);
+  obj->set_index(index);
+}
+
 template <typename T>
 cpp11::sexp mode_solve(SEXP ptr, double end_time) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
@@ -68,11 +117,11 @@ cpp11::sexp mode_solve(SEXP ptr, double end_time) {
 }
 
 template <typename T>
-cpp11::sexp mode_state(SEXP ptr) {
+cpp11::sexp mode_state_full(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  std::vector<double> dat(obj->n_state() * obj->n_particles());
-  obj->state(dat);
-  return state_array(dat, obj->n_state(), obj->n_particles());
+  std::vector<double> dat(obj->n_state_full() * obj->n_particles());
+  obj->state_full(dat);
+  return state_array(dat, obj->n_state_full(), obj->n_particles());
 }
 
 template <typename T>
@@ -172,8 +221,8 @@ void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
   auto reset_step_size = validate_reset_step_size(r_time, r_reset_step_size);
   auto time = validate_time(r_time);
   auto state = validate_state(r_state,
-                           static_cast<int>(obj->n_state()),
-                           static_cast<int>(obj->n_particles()));
+                              static_cast<int>(obj->n_state_full()),
+                              static_cast<int>(obj->n_particles()));
   obj->update_state(time, state, set_initial_state, reset_step_size);
 }
 
