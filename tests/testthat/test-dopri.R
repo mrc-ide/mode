@@ -13,7 +13,7 @@ test_that("can integrate logistic", {
   n_particles <- 5
   mod <- gen$new(pars, 0, n_particles)
 
-  actual <- vapply(times, function(t) mod$solve(t),
+  actual <- vapply(times, function(t) mod$run(t),
                    matrix(0.0, length(y0), n_particles))
   expect_equal(actual[, 1, ], analytic, tolerance = 1e-7)
   expect_equal(actual[, 1, ], dde, tolerance = 1e-7)

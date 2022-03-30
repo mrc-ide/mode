@@ -44,8 +44,8 @@
       private$index_
     },
 
-    solve = function(end_time) {
-      m <- mode_{{name}}_solve(private$ptr_, end_time)
+    run = function(end_time) {
+      m <- mode_{{name}}_run(private$ptr_, end_time)
       rownames(m) <- names(private$index_)
       m
     },

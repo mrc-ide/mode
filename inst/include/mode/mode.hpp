@@ -48,7 +48,7 @@ public:
     return solver_[0].time();
   }
 
-  void solve(int end_time) {
+  void run(int end_time) {
     for (size_t i = 0; i < n_particles_; ++i) {
       solver_[i].solve(end_time);
     }

@@ -13,8 +13,8 @@ double mode_{{name}}_time(SEXP ptr) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_solve(SEXP ptr, int end_time) {
-  return mode::r::mode_solve<mode::container<{{class}}>>(ptr, end_time);
+cpp11::sexp mode_{{name}}_run(SEXP ptr, int end_time) {
+  return mode::r::mode_run<mode::container<{{class}}>>(ptr, end_time);
 }
 
 [[cpp11::register]]
