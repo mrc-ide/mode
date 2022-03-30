@@ -103,10 +103,13 @@ public:
     }
   }
 
-  void set_time(double t) {
+  void set_time(double t, bool reset_step_size) {
     if (t != t_) {
       stats_.reset();
       t_ = t;
+    }
+    if (reset_step_size) {
+      set_initial_step_size();
     }
   }
 

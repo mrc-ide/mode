@@ -64,11 +64,8 @@ public:
       const bool individual = state.size() == n_state() * n_particles_;
       auto it = state.begin();
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_time(t);
         solver_[i].set_state(t, it);
-        if (reset_step_size) {
-          solver_[i].set_initial_step_size();
-        }
+        solver_[i].set_time(t, reset_step_size);
         if (individual) {
           it += n_state();
         }
@@ -76,18 +73,12 @@ public:
     } else if (set_initial_state) {
       auto y = m_.initial(t);
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_time(t);
         solver_[i].set_state(t, y);
-        if (reset_step_size) {
-          solver_[i].set_initial_step_size();
-        }
+        solver_[i].set_time(t, reset_step_size);
       }
     } else {
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_time(t);
-        if (reset_step_size) {
-          solver_[i].set_initial_step_size();
-        }
+        solver_[i].set_time(t, reset_step_size);
       }
     }
   }
