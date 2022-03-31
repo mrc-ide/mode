@@ -9,6 +9,7 @@
 #include <cpp11/protect.hpp>
 
 #include <mode/mode.hpp>
+#include <mode/r/helpers.hpp>
 
 namespace mode {
 namespace r {
@@ -27,29 +28,18 @@ double mode_time(SEXP ptr) {
   return obj->time();
 }
 
-cpp11::sexp state_array(const std::vector<double>& dat,
-                        size_t n_state,
-                        size_t n_particles) {
-  cpp11::writable::doubles ret(dat.size());
-  std::copy(dat.begin(), dat.end(), REAL(ret));
-
-  ret.attr("dim") = cpp11::writable::integers{static_cast<int>(n_state),
-                                              static_cast<int>(n_particles)};
-
-  return ret;
-}
-
-cpp11::sexp stats_array(const std::vector<size_t>& dat,
-                        size_t n_particles) {
-  cpp11::writable::integers ret(dat.size());
-  std::copy(dat.begin(), dat.end(), ret.begin());
-  ret.attr("dim") = cpp11::writable::integers{3, static_cast<int>(n_particles)};
-  ret.attr("class") = "mode_statistics";
-  auto row_names = cpp11::writable::strings{"n_steps",
-                                            "n_steps_accepted",
-                                            "n_steps_rejected"};
-  ret.attr("dimnames") = cpp11::writable::list{row_names, R_NilValue};
-  return ret;
+template <typename T>
+void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  if (r_index == R_NilValue) {
+    obj->initialise_index();
+  }
+  else {
+    const size_t index_max = obj->n_state_full();
+    const std::vector <size_t> index =
+        mode::r::r_index_to_index(r_index, index_max);
+    obj->set_index(index);
+  }
 }
 
 template <typename T>
@@ -64,15 +54,15 @@ cpp11::sexp mode_run(SEXP ptr, double end_time) {
 
   std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
-  return state_array(dat, obj->n_state(), obj->n_particles());
+  return mode::r::state_array(dat, obj->n_state(), obj->n_particles());
 }
 
 template <typename T>
-cpp11::sexp mode_state(SEXP ptr) {
+cpp11::sexp mode_state_full(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  std::vector<double> dat(obj->n_state() * obj->n_particles());
-  obj->state(dat);
-  return state_array(dat, obj->n_state(), obj->n_particles());
+  std::vector<double> dat(obj->n_state_full() * obj->n_particles());
+  obj->state_full(dat);
+  return mode::r::state_array(dat, obj->n_state_full(), obj->n_particles());
 }
 
 template <typename T>
@@ -80,7 +70,7 @@ cpp11::sexp mode_stats(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   std::vector<size_t> dat(3 * obj->n_particles());
   obj->statistics(dat);
-  return stats_array(dat, obj->n_particles());
+  return mode::r::stats_array(dat, obj->n_particles());
 }
 
 std::vector<double> validate_time(cpp11::sexp r_time) {
@@ -96,84 +86,21 @@ std::vector<double> validate_time(cpp11::sexp r_time) {
   return ret;
 }
 
-cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
-  cpp11::integers dim;
-  auto r_dim = obj.attr("dim");
-  if (r_dim == R_NilValue) {
-    dim = cpp11::writable::integers{static_cast<int>(obj_size)};
-  } else {
-    dim = cpp11::as_cpp<cpp11::integers>(r_dim);
-  }
-  return dim;
-}
-
-std::vector<double> validate_state(cpp11::sexp r_state,
-                                   int n_state,
-                                   int n_particles) {
-  if (r_state == R_NilValue) {
-    return std::vector<double>(0);
-  }
-  cpp11::doubles r_state_data = cpp11::as_cpp<cpp11::doubles>(r_state);
-  const size_t state_len = r_state_data.size();
-  auto dim = object_dimensions(r_state, n_state);
-  if (dim.size() > 2) {
-    cpp11::stop("Expected 'state' to have at most 2 dimensions");
-  }
-  if (dim.size() == 2) {
-    if (dim[0] != n_state || dim[1] != n_particles) {
-      cpp11::stop("Expected 'state' to be a %d by %d matrix but was %d by %d",
-                  n_state, n_particles, dim[0], dim[1]);
-    }
-  }
-  if (dim.size() == 1 && static_cast<int>(state_len) != n_state) {
-    cpp11::stop("Expected 'state' to be a vector of length %d but was length %d",
-                n_state, state_len);
-  }
-  std::vector<double> ret(state_len);
-  std::copy_n(REAL(r_state_data.data()), state_len, ret.begin());
-  return ret;
-}
-
-bool validate_set_initial_state(SEXP r_state, SEXP r_time,
-                                SEXP r_set_initial_state) {
-  bool set_initial_state = false;
-  if (r_set_initial_state == R_NilValue) {
-    set_initial_state = r_state == R_NilValue &&
-                        r_time != R_NilValue;
-  } else {
-    set_initial_state = cpp11::as_cpp<bool>(r_set_initial_state);
-    if (set_initial_state && r_state != R_NilValue) {
-      cpp11::stop("'set_initial_state' cannot be TRUE unless 'state' is NULL");
-    }
-  }
-  return set_initial_state;
-}
-
-bool validate_reset_step_size(SEXP r_time, SEXP r_reset_step_size) {
-  bool reset_step_size = false;
-  if (r_reset_step_size == R_NilValue) {
-    reset_step_size = r_time != R_NilValue;
-  } else {
-    reset_step_size = cpp11::as_cpp<bool>(r_reset_step_size);
-  }
-  return reset_step_size;
-}
-
 template <typename T>
 void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
                        SEXP r_set_initial_state,
                        SEXP r_reset_step_size) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
 
-  auto set_initial_state = validate_set_initial_state(r_state,
+  auto set_initial_state = mode::r::validate_set_initial_state(r_state,
                                                       r_time,
                                                       r_set_initial_state);
 
-  auto reset_step_size = validate_reset_step_size(r_time, r_reset_step_size);
-  auto time = validate_time(r_time);
-  auto state = validate_state(r_state,
-                           static_cast<int>(obj->n_state()),
-                           static_cast<int>(obj->n_particles()));
+  auto reset_step_size = mode::r::validate_reset_step_size(r_time, r_reset_step_size);
+  auto time = mode::r::validate_time(r_time);
+  auto state = mode::r::validate_state(r_state,
+                              static_cast<int>(obj->n_state_full()),
+                              static_cast<int>(obj->n_particles()));
   obj->update_state(time, state, set_initial_state, reset_step_size);
 }
 

@@ -6,7 +6,8 @@
     pars_ = NULL,
     info_ = NULL,
     ptr_ = NULL,
-    n_particles_ = NULL
+    n_particles_ = NULL,
+    index_ = NULL
   ),
 
   public = list(
@@ -33,8 +34,20 @@
       mode_{{name}}_time(private$ptr_)
     },
 
+    set_index = function(index) {
+      mode_{{name}}_set_index(private$ptr_, index)
+      private$index_ <- index
+      invisible()
+    },
+
+    index = function() {
+      private$index_
+    },
+
     run = function(end_time) {
-      mode_{{name}}_run(private$ptr_, end_time)
+      m <- mode_{{name}}_run(private$ptr_, end_time)
+      rownames(m) <- names(private$index_)
+      m
     },
 
     statistics = function() {
@@ -48,7 +61,7 @@
     },
 
     state = function() {
-      mode_{{name}}_state(private$ptr_)
+      mode_{{name}}_state_full(private$ptr_)
     }
 
   ))

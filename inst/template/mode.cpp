@@ -18,8 +18,8 @@ cpp11::sexp mode_{{name}}_run(SEXP ptr, int end_time) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_state(SEXP ptr) {
-  return mode::r::mode_state<mode::container<{{class}}>>(ptr);
+cpp11::sexp mode_{{name}}_state_full(SEXP ptr) {
+  return mode::r::mode_state_full<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]
@@ -33,4 +33,9 @@ void mode_{{name}}_update_state(SEXP ptr, SEXP state, SEXP time,
                                 SEXP reset_step_size) {
   return mode::r::mode_update_state<mode::container<{{class}}>>(ptr,
       state, time, set_initial_state, reset_step_size);
+}
+
+[[cpp11::register]]
+void mode_{{name}}_set_index(SEXP ptr, SEXP index) {
+  return mode::r::mode_set_index<mode::container<{{class}}>>(ptr, index);
 }
