@@ -234,3 +234,23 @@ test_that("Can update pars", {
   expect_equal(analytic, y2[, 1, drop = FALSE], tolerance = 1e-7)
   expect_true(all(y2 == y3))
 })
+
+test_that("Updating pars set initial state by default", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  initial_r <- c(0.1, 0.2)
+  initial_k <- c(100, 100)
+  initial_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
+                       K1 = initial_k[[1]], K2 = initial_k[[2]])
+  n_particles <- 5
+  initial_time <- 0
+  mod <- gen$new(initial_pars, initial_time, n_particles)
+  y1 <- mod$run(2)
+  expect_equal(mod$state(), y1)
+  new_k <- c(200, 200)
+  new_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
+                   K1 = new_k[[1]], K2 = new_k[[2]])
+  mod$update_state(pars = new_pars)
+  expect_equal(mod$pars(), new_pars)
+  expect_equal(mod$state(), matrix(1, ncol = n_particles, nrow = 2))
+})
