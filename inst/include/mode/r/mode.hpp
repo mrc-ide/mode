@@ -73,35 +73,31 @@ cpp11::sexp mode_stats(SEXP ptr) {
   return mode::r::stats_array(dat, obj->n_particles());
 }
 
-std::vector<double> validate_time(cpp11::sexp r_time) {
-  if (r_time == R_NilValue) {
-    return std::vector<double>(0);
-  }
-  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
-  if (time.size() != 1) {
-    cpp11::stop("Expected 'time' to be a scalar value");
-  }
-  std::vector<double> ret(1);
-  std::copy_n(REAL(time.data()), 1, ret.begin());
-  return ret;
-}
 
 template <typename T>
-void mode_update_state(SEXP ptr, SEXP r_state, SEXP r_time,
+void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                        SEXP r_set_initial_state,
                        SEXP r_reset_step_size) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  mode::container<T> *obj = cpp11::as_cpp<cpp11::external_pointer<mode::container<T>>>(ptr).get();
 
   auto set_initial_state = mode::r::validate_set_initial_state(r_state,
+                                                      r_pars,
                                                       r_time,
                                                       r_set_initial_state);
 
-  auto reset_step_size = mode::r::validate_reset_step_size(r_time, r_reset_step_size);
+  auto reset_step_size = mode::r::validate_reset_step_size(r_time,
+                                                           r_pars,
+                                                           r_reset_step_size);
   auto time = mode::r::validate_time(r_time);
   auto state = mode::r::validate_state(r_state,
                               static_cast<int>(obj->n_state_full()),
                               static_cast<int>(obj->n_particles()));
+  if (r_pars != R_NilValue) {
+    auto pars = mode::mode_pars<T>(r_pars);
+    obj->set_pars(pars);
+  }
   obj->update_state(time, state, set_initial_state, reset_step_size);
+
 }
 
 }

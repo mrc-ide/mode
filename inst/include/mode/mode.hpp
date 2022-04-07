@@ -108,6 +108,13 @@ public:
     }
   }
 
+  void set_pars(const pars_type& pars) {
+    m_ = model_type(pars);
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_model(m_);
+    }
+  }
+
   void statistics(std::vector<size_t> &all_stats) {
     auto it = all_stats.begin();
     for (size_t i = 0; i < n_particles_; ++i) {

@@ -160,19 +160,76 @@ test_that("Updating state does not reset statistics", {
   expect_identical(stats, mod$statistics())
 })
 
-test_that("Nothing happens if any parameters are invalid", {
+test_that("Nothing happens if any arguments are invalid", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  initial_pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 5
   initial_time <- 1
-  mod <- gen$new(pars, initial_time, n_particles)
+  mod <- gen$new(initial_pars, initial_time, n_particles)
   initial_state <- mod$state()
-  expect_error(mod$update_state(state = c(1, 2, 3), time = 5),
+  expect_error(mod$update_state(state = c(1, 2, 3),
+                                time = 5,
+                                pars = list(r1 = 0.1,
+                                            r2 = 0.2,
+                                            K1 = 200,
+                                            K2 = 200)),
                "Expected 'state' to be a vector of length 2 but was length 3")
   expect_equal(mod$time(), initial_time)
+  expect_equal(mod$pars(), initial_pars)
 
-  expect_error(mod$update_state(state = c(1, 2), time = c(1, 2)),
+  expect_error(mod$update_state(state = c(1, 2),
+                                time = c(1, 2),
+                                pars = list(r1 = 0.1,
+                                            r2 = 0.2,
+                                            K1 = 200,
+                                            K2 = 200)),
                                 "Expected 'time' to be a scalar value")
   expect_equal(mod$state(), initial_state)
+  expect_equal(mod$pars(), initial_pars)
+
+  expect_error(mod$update_state(pars = list(r3 = 1),
+                                state = c(1, 2),
+                                time = 5))
+  expect_equal(mod$state(), initial_state)
+  expect_equal(mod$time(), initial_time)
+})
+
+test_that("Can update pars", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  initial_r <- c(0.1, 0.2)
+  initial_k <- c(100, 100)
+  initial_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
+                       K1 = initial_k[[1]], K2 = initial_k[[2]])
+  n_particles <- 5
+  initial_time <- 0
+  mod <- gen$new(initial_pars, initial_time, n_particles)
+  y1 <- mod$run(1)
+  analytic <- logistic_analytic(initial_r, initial_k, 1, c(1, 1))
+  expect_equal(mod$state(), y1)
+  expect_equal(analytic, y1[, 1, drop = FALSE], tolerance = 1e-7)
+  new_k <- c(200, 200)
+  new_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
+                   K1 = new_k[[1]], K2 = new_k[[2]])
+  mod$update_state(pars = new_pars, set_initial_state = FALSE)
+  expect_equal(mod$state(), y1)
+  expect_equal(mod$time(), 1)
+  expect_equal(mod$pars(), new_pars)
+
+  y2 <- mod$run(2)
+
+  expect_equal(mod$state(), y2)
+
+  mod$update_state(time = 1, pars = new_pars, state = y1)
+  expect_equal(mod$state(), y1)
+  expect_equal(mod$time(), 1)
+  expect_equal(mod$pars(), new_pars)
+
+  y3 <- mod$run(2)
+
+  analytic <- logistic_analytic(initial_r, new_k, 1, y1[, 1])
+
+  expect_equal(analytic, y2[, 1, drop = FALSE], tolerance = 1e-7)
+  expect_true(all(y2 == y3))
 })

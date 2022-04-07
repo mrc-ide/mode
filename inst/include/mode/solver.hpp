@@ -127,6 +127,11 @@ public:
     set_state(t, state.begin());
   }
 
+  void set_model(Model m) {
+    m_ = m;
+    stepper_.set_model(m);
+  }
+
   size_t size() {
     return size_;
   }

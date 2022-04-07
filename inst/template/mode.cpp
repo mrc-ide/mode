@@ -28,11 +28,14 @@ cpp11::sexp mode_{{name}}_stats(SEXP ptr) {
 }
 
 [[cpp11::register]]
-void mode_{{name}}_update_state(SEXP ptr, SEXP state, SEXP time,
+void mode_{{name}}_update_state(SEXP ptr,
+                                SEXP state,
+                                SEXP time,
+                                SEXP pars,
                                 SEXP set_initial_state,
                                 SEXP reset_step_size) {
-  return mode::r::mode_update_state<mode::container<{{class}}>>(ptr,
-      state, time, set_initial_state, reset_step_size);
+  return mode::r::mode_update_state<{{class}}>(ptr,
+      state, time, pars, set_initial_state, reset_step_size);
 }
 
 [[cpp11::register]]

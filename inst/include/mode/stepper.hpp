@@ -121,6 +121,10 @@ public:
     m.rhs(t, y, k1);
   }
 
+  void set_model(Model new_model) {
+    m = new_model;
+  }
+
   void step_complete(double t, double h) {
     std::copy_n(k2.begin(), n, k1.begin()); // k1 = k2
     std::copy_n(y_next.begin(), n, y.begin()); // y = y_next
