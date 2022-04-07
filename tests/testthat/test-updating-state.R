@@ -230,6 +230,7 @@ test_that("Can update pars", {
 
   analytic <- logistic_analytic(initial_r, new_k, 1, y1[, 1])
 
+  expect_equal(analytic, y3[, 1, drop = FALSE], tolerance = 1e-7)
   expect_equal(analytic, y2[, 1, drop = FALSE], tolerance = 1e-7)
   expect_true(all(y2 == y3))
 })

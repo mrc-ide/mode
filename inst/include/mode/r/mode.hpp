@@ -97,7 +97,6 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
     obj->set_pars(pars);
   }
   obj->update_state(time, state, set_initial_state, reset_step_size);
-
 }
 
 }

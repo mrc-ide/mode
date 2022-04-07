@@ -120,6 +120,11 @@ public:
   void set_state(double t,
                  std::vector<double>::const_iterator state) {
     stepper_.set_state(t, state);
+    stepper_.initialise(t);
+  }
+
+  void initialise(double t) {
+    stepper_.initialise(t);
   }
 
   void set_state(double t,
