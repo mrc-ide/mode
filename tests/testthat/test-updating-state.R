@@ -254,3 +254,27 @@ test_that("Updating pars set initial state by default", {
   expect_equal(mod$pars(), new_pars)
   expect_equal(mod$state(), matrix(1, ncol = n_particles, nrow = 2))
 })
+
+test_that("Can reorder particles", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  mod$run(2)
+  y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+  mod$update_state(state = y)
+
+  mod$reorder(c(5, 4, 3, 2, 1))
+  ans <- mod$state()
+  expect_equal(ans, y[, 5:1])
+
+  # also check that the stepper has been re-initialised correctly
+  # to run forward from here
+  mod_fresh <- gen$new(pars, 2, n_particles)
+  mod_fresh$update_state(state = ans)
+  res <- mod_fresh$run(3)
+
+  expect_identical(res, mod$run(3))
+})

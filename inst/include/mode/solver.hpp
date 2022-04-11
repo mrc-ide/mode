@@ -132,6 +132,16 @@ public:
     set_state(t, state.begin());
   }
 
+  void set_state(const solver<Model>& other) {
+    stepper_.set_state(other.stepper_);
+  }
+
+  void swap() {
+    stepper_.swap();
+    stepper_.initialise(t_);
+    set_initial_step_size();
+  }
+
   void set_model(Model m) {
     m_ = m;
     stepper_.set_model(m);

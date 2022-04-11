@@ -120,6 +120,14 @@ public:
     }
   }
 
+  void set_state(const stepper<Model>& other) {
+    k1 = other.y;
+  }
+
+  void swap() {
+    std::swap(y, k1);
+  }
+
   void set_model(Model new_model) {
     m = new_model;
   }
