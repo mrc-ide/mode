@@ -91,6 +91,7 @@ public:
       for (size_t i = 0; i < n_particles_; ++i) {
         solver_[i].set_state(t, it);
         solver_[i].set_time(t, reset_step_size);
+        solver_[i].initialise(t);
         if (individual) {
           it += n_state_full();
         }
@@ -100,11 +101,20 @@ public:
       for (size_t i = 0; i < n_particles_; ++i) {
         solver_[i].set_state(t, y);
         solver_[i].set_time(t, reset_step_size);
+        solver_[i].initialise(t);
       }
     } else {
       for (size_t i = 0; i < n_particles_; ++i) {
         solver_[i].set_time(t, reset_step_size);
+        solver_[i].initialise(t);
       }
+    }
+  }
+
+  void set_pars(const pars_type& pars) {
+    m_ = model_type(pars);
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_model(m_);
     }
   }
 

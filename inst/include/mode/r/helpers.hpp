@@ -117,12 +117,24 @@ std::vector<double> validate_state(cpp11::sexp r_state,
 }
 
 inline
-bool validate_set_initial_state(SEXP r_state, SEXP r_time,
+std::vector<double> validate_time(cpp11::sexp r_time) {
+  if (r_time == R_NilValue) {
+    return std::vector<double>(0);
+  }
+  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
+  if (time.size() != 1) {
+    cpp11::stop("Expected 'time' to be a scalar value");
+  }
+  return std::vector<double> {time[0]};
+}
+
+inline
+bool validate_set_initial_state(SEXP r_state, SEXP r_pars, SEXP r_time,
                                 SEXP r_set_initial_state) {
   bool set_initial_state = false;
   if (r_set_initial_state == R_NilValue) {
     set_initial_state = r_state == R_NilValue &&
-                        r_time != R_NilValue;
+        (r_time != R_NilValue || r_pars != R_NilValue);
   } else {
     set_initial_state = cpp11::as_cpp<bool>(r_set_initial_state);
     if (set_initial_state && r_state != R_NilValue) {
@@ -133,10 +145,12 @@ bool validate_set_initial_state(SEXP r_state, SEXP r_time,
 }
 
 inline
-bool validate_reset_step_size(SEXP r_time, SEXP r_reset_step_size) {
+bool validate_reset_step_size(SEXP r_time,
+                              SEXP r_pars,
+                              SEXP r_reset_step_size) {
   bool reset_step_size = false;
   if (r_reset_step_size == R_NilValue) {
-    reset_step_size = r_time != R_NilValue;
+    reset_step_size = r_time != R_NilValue || r_pars != R_NilValue;
   } else {
     reset_step_size = cpp11::as_cpp<bool>(r_reset_step_size);
   }

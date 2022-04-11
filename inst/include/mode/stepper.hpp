@@ -118,6 +118,13 @@ public:
     for (size_t i = 0; i < n; ++i, ++state) {
       y[i] = *state;
     }
+  }
+
+  void set_model(Model new_model) {
+    m = new_model;
+  }
+
+  void initialise(double t) {
     m.rhs(t, y, k1);
   }
 
