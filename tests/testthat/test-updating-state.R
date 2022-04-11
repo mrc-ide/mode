@@ -272,9 +272,11 @@ test_that("Can reorder particles", {
 
   # also check that the stepper has been re-initialised correctly
   # to run forward from here
-  mod_fresh <- gen$new(pars, 2, n_particles)
-  mod_fresh$update_state(state = ans)
-  res <- mod_fresh$run(3)
+  mod_fresh <- gen$new(pars, initial_time, n_particles)
+  mod_fresh$run(2)
+  y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+  mod_fresh$update_state(state = y)
 
-  expect_identical(res, mod$run(3))
+  res <- mod$run(3)
+  expect_identical(res[, 5:1], mod_fresh$run(3))
 })
