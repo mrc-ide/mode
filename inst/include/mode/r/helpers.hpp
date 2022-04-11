@@ -125,9 +125,7 @@ std::vector<double> validate_time(cpp11::sexp r_time) {
   if (time.size() != 1) {
     cpp11::stop("Expected 'time' to be a scalar value");
   }
-  std::vector<double> ret(1);
-  std::copy_n(REAL(time.data()), 1, ret.begin());
-  return ret;
+  return std::vector<double> {time[0]};
 }
 
 inline
