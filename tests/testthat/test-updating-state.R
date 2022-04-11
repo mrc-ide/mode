@@ -271,12 +271,15 @@ test_that("Can reorder particles", {
   expect_equal(ans, y[, 5:1])
 
   # also check that the stepper has been re-initialised correctly
-  # to run forward from here
+  # run sufficiently forward in time that statistics for particles diverge
   mod_fresh <- gen$new(pars, initial_time, n_particles)
   mod_fresh$run(2)
   y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
   mod_fresh$update_state(state = y)
-
-  res <- mod$run(3)
-  expect_identical(res[, 5:1], mod_fresh$run(3))
+  mod$run(100)
+  mod_fresh$run(100)
+  stats <- mod$statistics()
+  expect_false(all(unclass(stats) == stats[, 5:1]))
+  expect_identical(stats[, 5:1], unclass(mod_fresh$statistics()))
+  expect_identical(mod$state()[, 5:1], mod_fresh$state())
 })
