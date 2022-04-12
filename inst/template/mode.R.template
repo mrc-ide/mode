@@ -61,6 +61,11 @@
       private$pars_ <- pars
     },
 
+    reorder = function(index) {
+      mode_{{name}}_reorder(private$ptr_, index)
+      invisible()
+    },
+
     state = function() {
       mode_{{name}}_state_full(private$ptr_)
     }

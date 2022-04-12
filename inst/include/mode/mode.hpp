@@ -118,6 +118,16 @@ public:
     }
   }
 
+  void reorder(const std::vector<size_t>& index) {
+    for (size_t i = 0; i < n_particles_; ++i) {
+      size_t j = index[i];
+      solver_[i].set_state(solver_[j]);
+    }
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].swap();
+    }
+  }
+
   void statistics(std::vector<size_t> &all_stats) {
     auto it = all_stats.begin();
     for (size_t i = 0; i < n_particles_; ++i) {

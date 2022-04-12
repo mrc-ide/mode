@@ -99,5 +99,18 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
   obj->update_state(time, state, set_initial_state, reset_step_size);
 }
 
+template <typename T>
+void mode_reorder(SEXP ptr, cpp11::sexp r_index) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const size_t index_max = obj->n_particles();
+  const std::vector <size_t> index =
+      mode::r::r_index_to_index(r_index, index_max);
+  if (index.size() != index_max) {
+    cpp11::stop("'index' must be a vector of length %d",
+                index_max);
+  }
+  obj->reorder(index);
+}
+
 }
 }
