@@ -45,5 +45,5 @@ void mode_{{name}}_set_index(SEXP ptr, SEXP index) {
 
 [[cpp11::register]]
 void mode_{{name}}_reorder(SEXP ptr, SEXP index) {
-return mode::r::mode_reorder<mode::container<{{class}}>>(ptr, index);
+  return mode::r::mode_reorder<mode::container<{{class}}>>(ptr, index);
 }
