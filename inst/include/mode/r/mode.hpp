@@ -105,6 +105,10 @@ void mode_reorder(SEXP ptr, cpp11::sexp r_index) {
   const size_t index_max = obj->n_particles();
   const std::vector <size_t> index =
       mode::r::r_index_to_index(r_index, index_max);
+  if (index.size() != index_max) {
+    cpp11::stop("'index' must be a vector of length %d",
+                index_max);
+  }
   obj->reorder(index);
 }
 

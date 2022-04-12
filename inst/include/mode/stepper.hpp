@@ -120,11 +120,15 @@ public:
     }
   }
 
+  // store future y values in k3, future dydt in k2
+  // these will then be swapped into place (see "swap" below)
   void set_state(const stepper<Model>& other) {
     std::copy(other.k1.begin(), other.k1.end(), k2.begin());
     std::copy(other.y.begin(), other.y.end(), k3.begin());
   }
 
+  // to be called after "set_state(other)", see above
+  // to populate desired y, k1 values
   void swap() {
     std::swap(k1, k2);
     std::swap(y, k3);
