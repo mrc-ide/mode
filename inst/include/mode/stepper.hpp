@@ -121,8 +121,8 @@ public:
   }
 
   void set_state(const stepper<Model>& other) {
-    k2 = other.k1;
-    k3 = other.y;
+    std::copy(other.k1.begin(), other.k1.end(), k2.begin());
+    std::copy(other.y.begin(), other.y.end(), k3.begin());
   }
 
   void swap() {
