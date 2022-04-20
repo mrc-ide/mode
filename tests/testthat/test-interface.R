@@ -56,6 +56,20 @@ test_that("Can get arbitrary partial state", {
   expect_identical(state, res)
 })
 
+test_that("Error if partial state index is invalid", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  expect_error(mod$state(3),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
+  expect_error(mod$state(c(1, 2, 3)),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
+})
+
 test_that("Can set vector index", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
