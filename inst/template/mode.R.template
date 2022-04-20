@@ -66,8 +66,12 @@
       invisible()
     },
 
-    state = function() {
-      mode_{{name}}_state_full(private$ptr_)
+    state = function(index = NULL) {
+      if (is.null(index)) {
+        mode_{{name}}_state_full(private$ptr_)
+      } else {
+        mode_{{name}}_state(private$ptr_, index)
+      }
     }
 
   ))

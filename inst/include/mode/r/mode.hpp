@@ -66,6 +66,18 @@ cpp11::sexp mode_state_full(SEXP ptr) {
 }
 
 template <typename T>
+cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  const size_t index_max = obj->n_state_full();
+  const std::vector <size_t> index =
+      mode::r::r_index_to_index(r_index, index_max);
+  size_t n = index.size();
+  std::vector<double> dat(n * obj->n_particles());
+  obj->state(dat, index);
+  return mode::r::state_array(dat, n, obj->n_particles());
+}
+
+template <typename T>
 cpp11::sexp mode_stats(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   std::vector<size_t> dat(3 * obj->n_particles());
