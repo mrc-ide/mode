@@ -44,6 +44,16 @@ void mode_{{name}}_set_index(SEXP ptr, SEXP index) {
 }
 
 [[cpp11::register]]
+size_t mode_{{name}}_n_state(SEXP ptr) {
+  return mode::r::mode_n_state<mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
+size_t mode_{{name}}_n_state_full(SEXP ptr) {
+  return mode::r::mode_n_state_full <mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
 void mode_{{name}}_reorder(SEXP ptr, SEXP index) {
   return mode::r::mode_reorder<mode::container<{{class}}>>(ptr, index);
 }
