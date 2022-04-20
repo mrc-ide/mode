@@ -195,6 +195,8 @@ test_that("Can get model size", {
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   mod <- gen$new(pars, 1, 1)
+  expect_equal(mod$n_state(), 2)
+  expect_equal(mod$n_state_full(), 2)
   mod$set_index(1)
   expect_equal(mod$n_state(), 1)
   expect_equal(mod$n_state_full(), 2)
