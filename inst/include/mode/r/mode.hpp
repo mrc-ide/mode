@@ -75,7 +75,8 @@ cpp11::sexp mode_stats(SEXP ptr) {
 
 
 template <typename T>
-void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
+void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
+                       SEXP r_index,
                        SEXP r_set_initial_state,
                        SEXP r_reset_step_size) {
   mode::container<T> *obj = cpp11::as_cpp<cpp11::external_pointer<mode::container<T>>>(ptr).get();
@@ -84,19 +85,30 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                                                       r_pars,
                                                       r_time,
                                                       r_set_initial_state);
+  std::vector<size_t> index;
+  const size_t index_max = obj->n_state_full();
+  if (r_index != R_NilValue) {
+    index = mode::r::r_index_to_index(r_index, index_max);
+  } else {
+    index.clear();
+    index.reserve(index_max);
+    for (size_t i = 0; i < index_max; ++i) {
+      index.push_back(i);
+    }
+  }
 
   auto reset_step_size = mode::r::validate_reset_step_size(r_time,
                                                            r_pars,
                                                            r_reset_step_size);
   auto time = mode::r::validate_time(r_time);
   auto state = mode::r::validate_state(r_state,
-                              static_cast<int>(obj->n_state_full()),
-                              static_cast<int>(obj->n_particles()));
+                                       index.size(),
+                                       static_cast<int>(obj->n_particles()));
   if (r_pars != R_NilValue) {
     auto pars = mode::mode_pars<T>(r_pars);
     obj->set_pars(pars);
   }
-  obj->update_state(time, state, set_initial_state, reset_step_size);
+  obj->update_state(time, state, index, set_initial_state, reset_step_size);
 }
 
 template <typename T>

@@ -126,6 +126,13 @@ public:
     stepper_.initialise(t);
   }
 
+  void set_state(double t,
+                 std::vector<double>::const_iterator state,
+                 const std::vector<size_t>& index) {
+    stepper_.set_state(t, state, index);
+    stepper_.initialise(t);
+  }
+
   void initialise(double t) {
     stepper_.initialise(t);
   }
@@ -133,6 +140,12 @@ public:
   void set_state(double t,
                  const std::vector<double> &state) {
     set_state(t, state.begin());
+  }
+
+  void set_state(double t,
+                 const std::vector<double> &state,
+                 const std::vector<size_t>& index) {
+    set_state(t, state.begin(), index);
   }
 
   void set_state(const solver<Model>& other) {

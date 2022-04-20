@@ -95,6 +95,8 @@ test_that("Error if state vector does not have correct length", {
   mod <- gen$new(pars, 1, n_particles)
   expect_error(mod$update_state(state = c(1, 2, 3, 4, 5)),
                "Expected 'state' to be a vector of length 2 but was length 5")
+  expect_error(mod$update_state(state = c(1, 2), index = 1),
+               "Expected 'state' to be a vector of length 1 but was length 2")
 })
 
 test_that("Error if state matrix does not have correct dimensions", {
@@ -109,6 +111,11 @@ test_that("Error if state matrix does not have correct dimensions", {
   # check wrong nrow
   expect_error(mod$update_state(state = matrix(1, nrow = 3, ncol = 5)),
                "Expected 'state' to be a 2 by 5 matrix but was 3 by 5")
+
+  # check wrong with index
+  expect_error(mod$update_state(state = matrix(1, nrow = 3, ncol = 5),
+                                index = 1),
+               "Expected 'state' to be a 1 by 5 matrix but was 2 by 5")
 })
 
 test_that("Can update state with a vector", {
@@ -143,6 +150,41 @@ test_that("Can update state with a matrix", {
   new_state <- cbind(prev_state + 10, prev_state + 11, prev_state + 12)
   mod$update_state(state = new_state)
   expect_identical(mod$state(), new_state)
+})
+
+test_that("Can update state with a vector and index", {
+  y0 <- c(1, 1)
+  r <- c(0.1, 0.2)
+  k <- c(100, 100)
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
+  n_particles <- 2
+  mod <- gen$new(pars, 0, n_particles)
+  res <- vapply(1:10, function(t) mod$run(t),
+                matrix(0.0, 2, n_particles))
+  prev_state <- res[, 1, 10]
+  new_state <- prev_state + 10
+  mod$update_state(state = new_state[1], index = 1)
+  expect_identical(mod$state(), matrix(c(new_state[1],
+                                         prev_state[2]), nrow = 2, ncol = 2))
+})
+
+test_that("Can update state with a matrix and index", {
+  y0 <- c(1, 1)
+  r <- c(0.1, 0.2)
+  k <- c(100, 100)
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = r[1], r2 = r[2], K1 = k[1], K2 = k[2])
+  n_particles <- 3
+  mod <- gen$new(pars, 0, n_particles)
+  res <- vapply(1:10, function(t) mod$run(t),
+                matrix(0.0, 2, n_particles))
+  prev_state <- res[, 1, 10]
+  new_state <- cbind(prev_state[1] + 10, prev_state[1] + 11, prev_state[1] + 12)
+  mod$update_state(state = new_state, index = 1)
+  expect_identical(mod$state(), rbind(new_state, rep(prev_state[2], 3)))
 })
 
 test_that("Updating state does not reset statistics", {

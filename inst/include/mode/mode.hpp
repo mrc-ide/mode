@@ -79,6 +79,7 @@ public:
 
   void update_state(std::vector<double> time,
                     const std::vector<double>& state,
+                    const std::vector<size_t>& index,
                     bool set_initial_state,
                     bool reset_step_size) {
     auto t = solver_[0].time();
@@ -86,20 +87,21 @@ public:
       t = time[0];
     }
     if (state.size() > 0) {
-      const bool individual = state.size() == n_state_full() * n_particles_;
+      size_t n = index.size();
+      const bool individual = state.size() == n * n_particles_;
       auto it = state.begin();
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_state(t, it);
+        solver_[i].set_state(t, it, index);
         solver_[i].set_time(t, reset_step_size);
         solver_[i].initialise(t);
         if (individual) {
-          it += n_state_full();
+          it += n;
         }
       }
     } else if (set_initial_state) {
       auto y = m_.initial(t);
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_state(t, y);
+        solver_[i].set_state(t, y, index);
         solver_[i].set_time(t, reset_step_size);
         solver_[i].initialise(t);
       }
