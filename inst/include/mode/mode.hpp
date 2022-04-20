@@ -77,6 +77,13 @@ public:
     }
   }
 
+  void state(std::vector<double> &end_state, const std::vector<size_t>& index) {
+    auto it = end_state.begin();
+    for (size_t i = 0; i < n_particles_; ++i) {
+      it = solver_[i].state(index, it);
+    }
+  }
+
   void update_state(std::vector<double> time,
                     const std::vector<double>& state,
                     const std::vector<size_t>& index,

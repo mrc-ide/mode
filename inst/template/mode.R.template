@@ -54,6 +54,14 @@
       mode_{{name}}_stats(private$ptr_)
     },
 
+    n_state = function() {
+      mode_{{name}}_n_state(private$ptr_)
+    },
+
+    n_state_full = function() {
+      mode_{{name}}_n_state_full(private$ptr_)
+    },
+
     update_state = function(pars = NULL, time = NULL,
                             state = NULL, index = NULL,
                             set_initial_state = NULL, reset_step_size = NULL) {
@@ -67,8 +75,12 @@
       invisible()
     },
 
-    state = function() {
-      mode_{{name}}_state_full(private$ptr_)
+    state = function(index = NULL) {
+      if (is.null(index)) {
+        mode_{{name}}_state_full(private$ptr_)
+      } else {
+        mode_{{name}}_state(private$ptr_, index)
+      }
     }
 
   ))

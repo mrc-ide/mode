@@ -113,7 +113,7 @@ test_that("Error if state matrix does not have correct dimensions", {
                "Expected 'state' to be a 2 by 5 matrix but was 3 by 5")
 
   # check wrong with index
-  expect_error(mod$update_state(state = matrix(1, nrow = 3, ncol = 5),
+  expect_error(mod$update_state(state = matrix(1, nrow = 2, ncol = 5),
                                 index = 1),
                "Expected 'state' to be a 1 by 5 matrix but was 2 by 5")
 })

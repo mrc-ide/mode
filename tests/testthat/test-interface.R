@@ -10,7 +10,7 @@ test_that("Can compile a simple model", {
   expect_equal(mod$n_particles(), n_particles)
 })
 
-test_that("Returns full state when no index given", {
+test_that("Returns full state when no index set", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
@@ -23,7 +23,7 @@ test_that("Returns full state when no index given", {
   expect_identical(res, state)
 })
 
-test_that("Only returns state for given index", {
+test_that("Returns state for set index", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
@@ -35,6 +35,39 @@ test_that("Only returns state for given index", {
 
   state <- mod$state()
   expect_identical(res, state[1, , drop = FALSE])
+})
+
+test_that("Can get arbitrary partial state", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  res <- mod$run(2)
+  expect_equal(dim(res), c(2, n_particles))
+
+  state <- mod$state(1)
+  expect_identical(state, res[1, , drop = FALSE])
+
+  state <- mod$state(2)
+  expect_identical(state, res[2, , drop = FALSE])
+
+  state <- mod$state()
+  expect_identical(state, res)
+})
+
+test_that("Error if partial state index is invalid", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  mod <- gen$new(pars, 1, n_particles)
+  expect_error(mod$state(3),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
+  expect_error(mod$state(c(1, 2, 3)),
+               "All elements of 'index' must lie in [1, 2]",
+               fixed = TRUE)
 })
 
 test_that("Can set vector index", {
@@ -188,4 +221,16 @@ test_that("Can retrieve statistics", {
   stats <- mod$statistics()
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
+})
+
+test_that("Can get model size", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  mod <- gen$new(pars, 1, 1)
+  expect_equal(mod$n_state(), 2)
+  expect_equal(mod$n_state_full(), 2)
+  mod$set_index(1)
+  expect_equal(mod$n_state(), 1)
+  expect_equal(mod$n_state_full(), 2)
 })
