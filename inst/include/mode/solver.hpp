@@ -19,6 +19,9 @@ private:
   double last_error_;
   stepper<Model> stepper_;
   size_t size_;
+  double h_swap_;
+  double last_error_swap_;
+  stats stats_swap_;
 public:
   solver(Model m,
          double t,
@@ -130,6 +133,20 @@ public:
   void set_state(double t,
                  const std::vector<double> &state) {
     set_state(t, state.begin());
+  }
+
+  void set_state(const solver<Model>& other) {
+    stepper_.set_state(other.stepper_);
+    h_swap_ = other.h_;
+    last_error_swap_ = other.last_error_;
+    stats_swap_ = other.stats_;
+  }
+
+  void swap() {
+    stepper_.swap();
+    h_ = h_swap_;
+    last_error_ = last_error_swap_;
+    stats_ = stats_swap_;
   }
 
   void set_model(Model m) {

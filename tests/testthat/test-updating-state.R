@@ -254,3 +254,112 @@ test_that("Updating pars set initial state by default", {
   expect_equal(mod$pars(), new_pars)
   expect_equal(mod$state(), matrix(1, ncol = n_particles, nrow = 2))
 })
+
+test_that("Error if particle re-ordering index is wrong length", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+
+  expect_error(mod$reorder(c(5, 4, 3)), "'index' must be a vector of length 5")
+})
+
+test_that("Error if particle re-ordering index is out of range", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  expect_error(mod$reorder(c(2, 3, 4, 5, 6)),
+               "All elements of 'index' must lie in [1, 5]", fixed = TRUE)
+})
+
+test_that("Can reorder particles", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  mod$run(2)
+  y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+  mod$update_state(state = y)
+
+  mod$reorder(c(5, 4, 3, 2, 1))
+  ans <- mod$state()
+  expect_equal(ans, y[, 5:1])
+
+  # also check that the stepper has been re-initialised correctly
+  # run sufficiently forward in time that statistics for particles diverge
+  mod_fresh <- gen$new(pars, initial_time, n_particles)
+  mod_fresh$run(2)
+  y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+  mod_fresh$update_state(state = y)
+  mod$run(100)
+  mod_fresh$run(100)
+  stats <- mod$statistics()
+  expect_false(all(unclass(stats) == stats[, 5:1]))
+  expect_identical(stats[, 5:1], unclass(mod_fresh$statistics()))
+  expect_identical(mod$state()[, 5:1], mod_fresh$state())
+})
+
+test_that("Can reorder particles with duplication", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  mod$run(2)
+  y <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+  mod$update_state(state = y)
+
+  order_index <- c(1, 2, 2, 2, 2)
+  mod$reorder(order_index)
+  ans <- mod$state()
+  expect_equal(ans, y[, order_index])
+
+  # also check that the stepper has been re-initialised correctly
+  # run sufficiently forward in time that statistics for particles diverge
+  mod_fresh <- gen$new(pars, initial_time, n_particles)
+  mod_fresh$run(2)
+  mod_fresh$update_state(state = y)
+  mod$run(100)
+  mod_fresh$run(100)
+  stats <- mod$statistics()
+  stats_fresh <- mod_fresh$statistics()
+  expect_false(all(unclass(stats_fresh) == stats_fresh[, order_index]))
+  expect_identical(unclass(stats), stats_fresh[, order_index])
+  expect_identical(mod$state(), mod_fresh$state()[, order_index])
+})
+
+test_that("Can reorder particles mid-flight", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 5
+  initial_time <- 1
+  y0 <- matrix(as.numeric(1:10), ncol = 5, nrow = 2)
+
+  ## Run in one go:
+  mod <- gen$new(pars, initial_time, n_particles)
+  mod$update_state(state = y0, time = initial_time)
+  mod$run(5)
+  y1 <- mod$run(10)
+  s1 <- mod$statistics()
+
+  ## Run half way, reorder, continue:
+  mod$update_state(state = y0, time = initial_time)
+
+  y2 <- mod$run(5)
+  s2 <- mod$statistics()
+  mod$reorder(5:1)
+  y3 <- mod$run(10)
+  s3 <- mod$statistics()
+
+  expect_identical(y3, y1[, 5:1])
+  expect_true(all(unclass(s3) == s3[, 5:1]))
+})
