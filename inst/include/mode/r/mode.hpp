@@ -17,20 +17,20 @@ namespace r {
 template <typename T>
 cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles) {
   auto pars = mode::mode_pars<T>(r_pars);
-  container <T> *d = new mode::container<T>(pars, time, n_particles);
-  cpp11::external_pointer <container<T>> ptr(d, true, false);
+  container<T> *d = new mode::container<T>(pars, time, n_particles);
+  cpp11::external_pointer<container<T>> ptr(d, true, false);
   return cpp11::writable::list({ptr});
 }
 
 template <typename T>
 double mode_time(SEXP ptr) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   return obj->time();
 }
 
 template <typename T>
 void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   if (r_index == R_NilValue) {
     obj->initialise_index();
   } else {
@@ -43,7 +43,7 @@ void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
 
 template <typename T>
 cpp11::sexp mode_run(SEXP ptr, double end_time) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   auto time = obj->time();
   if (end_time < time) {
     cpp11::stop("'end_time' (%f) must be greater than current time (%f)",
@@ -58,7 +58,7 @@ cpp11::sexp mode_run(SEXP ptr, double end_time) {
 
 template <typename T>
 cpp11::sexp mode_state_full(SEXP ptr) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   std::vector<double> dat(obj->n_state_full() * obj->n_particles());
   obj->state_full(dat);
   return mode::r::state_array(dat, obj->n_state_full(), obj->n_particles());
@@ -66,8 +66,8 @@ cpp11::sexp mode_state_full(SEXP ptr) {
 
 template <typename T>
 cpp11::sexp mode_stats(SEXP ptr) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
-  std::vector <size_t> dat(3 * obj->n_particles());
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  std::vector<size_t> dat(3 * obj->n_particles());
   obj->statistics(dat);
   return mode::r::stats_array(dat, obj->n_particles());
 }
@@ -77,7 +77,7 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                        SEXP r_set_initial_state,
                        SEXP r_reset_step_size) {
   mode::container<T> *obj =
-      cpp11::as_cpp < cpp11::external_pointer < mode::container<T>>>(ptr).get();
+      cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
 
   auto set_initial_state = mode::r::validate_set_initial_state(r_state,
                                                                r_pars,
@@ -100,19 +100,19 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
 
 template <typename T>
 size_t mode_n_state(SEXP ptr) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   return obj->n_state();
 }
 
 template <typename T>
 size_t mode_n_state_full(SEXP ptr) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   return obj->n_state_full();
 }
 
 template <typename T>
 void mode_reorder(SEXP ptr, cpp11::sexp r_index) {
-  T *obj = cpp11::as_cpp < cpp11::external_pointer < T >> (ptr).get();
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const size_t index_max = obj->n_particles();
   const std::vector <size_t> index =
       mode::r::r_index_to_index(r_index, index_max);
