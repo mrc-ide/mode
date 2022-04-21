@@ -62,9 +62,10 @@
       mode_{{name}}_n_state_full(private$ptr_)
     },
 
-    update_state = function(pars = NULL, state = NULL, time = NULL,
+    update_state = function(pars = NULL, time = NULL,
+                            state = NULL, index = NULL,
                             set_initial_state = NULL, reset_step_size = NULL) {
-      mode_{{name}}_update_state(private$ptr_, pars, state, time,
+      mode_{{name}}_update_state(private$ptr_, pars, time, state, index,
                                  set_initial_state, reset_step_size)
       private$pars_ <- pars
     },
