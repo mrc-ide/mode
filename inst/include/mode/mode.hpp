@@ -32,12 +32,16 @@ public:
     return n_particles_;
   }
 
-  size_t n_state_full() {
+  size_t n_output_full() {
     return m_.size() + m_.n_output();
   }
 
-  size_t n_state() const {
+  size_t n_output() const {
     return index_.size();
+  }
+
+  size_t n_state() {
+    return m_.size();
   }
 
   void set_index(const std::vector<size_t>& index) {
@@ -45,7 +49,7 @@ public:
   }
 
   void initialise_index() {
-    const size_t n = n_state_full();
+    const size_t n = n_state();
     index_.clear();
     index_.reserve(n);
     for (size_t i = 0; i < n; ++i) {

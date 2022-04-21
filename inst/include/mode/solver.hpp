@@ -23,7 +23,7 @@ private:
   double h_swap_;
   double last_error_swap_;
   stats stats_swap_;
-  std::vector<double> output_;
+  std::vector<double> state_full_;
 public:
   solver(Model m,
          double t,
@@ -34,7 +34,7 @@ public:
                         stepper_(m),
                         size_(m.size()),
                         n_output_(m.n_output()),
-                        output_(n_output_) {
+                        state_full_(size_ + n_output_) {
     stats_.reset();
     set_state(t, y);
     set_initial_step_size();
@@ -177,30 +177,20 @@ public:
 
   std::vector<double>::iterator
   state(const std::vector<size_t>& index,
-             std::vector<double>::iterator end_state) const {
-    auto y = stepper_.state();
-    m_.output(t_, y, output_);
+             std::vector<double>::iterator end_state) {
+    auto it = state_full_.begin();
+    stepper_.state(it);
+    m_.output(t_, it);
     for (size_t i = 0; i < index.size(); ++i, end_state++) {
-      if (index[i] < size_) {
-        *end_state = y[index[i]];
-      } else {
-        *end_state = output_[index[i] - size_];
-      }
+        *end_state = state_full_[index[i]];
     }
     return end_state;
   }
 
   std::vector<double>::iterator
-  state_full(std::vector<double>::iterator end_state) const {
-    auto y = stepper_.state();
-    m_.output(t_, y, output_);
-    for (size_t i = 0; i < size_ _ n_output_; ++i, end_state++) {
-      if (i < size_) {
-        *end_state = y[i];
-      } else {
-        *end_state = output_[i - size_];
-      }
-    }
+  state_full(std::vector<double>::iterator end_state) {
+    stepper_.state(end_state);
+    end_state = m_.output(t_, end_state);
     return end_state;
   }
 

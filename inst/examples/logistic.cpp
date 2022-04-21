@@ -22,12 +22,13 @@ public:
     dydt[1] = shared->r2 * N2 * (1 - N2 / shared->K2);
   }
 
-  void output(double t,
-              const std::vector<double>& y,
-              std::vector<double>& output) const {
-    const double N1 = y[0];
-    const double N2 = y[1];
-    output[0] = N1 + N2;
+  std::vector<double>::iterator
+  output(double t,
+         std::vector<double>::iterator end_state) const {
+    const double N1 = end_state[0];
+    const double N2 = end_state[1];
+    end_state[2] = N1 + N2;
+    return end_state + 3;
   }
 
   std::vector<double> initial(double time) {

@@ -160,6 +160,12 @@ public:
     return y;
   }
 
+  void state(std::vector<double>::iterator end_state) {
+    for (size_t i = 0; i < n; ++i, ++end_state) {
+      *end_state = y[i];
+    }
+  }
+
 };
 
 }

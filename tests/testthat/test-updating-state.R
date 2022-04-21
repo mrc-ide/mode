@@ -132,7 +132,9 @@ test_that("Can update state with a vector", {
   prev_state <- res[, 1, 10]
   new_state <- prev_state + 10
   mod$update_state(state = new_state)
-  expect_identical(mod$state(), matrix(new_state, nrow = 2, ncol = 2))
+  state <- mod$state()
+  expect_identical(state[1:2, ], matrix(new_state, nrow = 2, ncol = 2))
+  expect_identical(state[1, ] + state[2, ], state[3, ])
 })
 
 test_that("Can update state with a matrix", {
@@ -149,7 +151,9 @@ test_that("Can update state with a matrix", {
   prev_state <- res[, 1, 10]
   new_state <- cbind(prev_state + 10, prev_state + 11, prev_state + 12)
   mod$update_state(state = new_state)
-  expect_identical(mod$state(), new_state)
+  state <- mod$state()
+  expect_identical(state[1:2, ], new_state)
+  expect_identical(state[1, ] + state[2, ], state[3, ])
 })
 
 test_that("Can update state with a vector and index", {
@@ -166,8 +170,10 @@ test_that("Can update state with a vector and index", {
   prev_state <- res[, 1, 10]
   new_state <- prev_state + 10
   mod$update_state(state = new_state[1], index = 1)
-  expect_identical(mod$state(), matrix(c(new_state[1],
+  state <- mod$state()
+  expect_identical(state[1:2, ], matrix(c(new_state[1],
                                          prev_state[2]), nrow = 2, ncol = 2))
+  expect_identical(state[1, ] + state[2, ], state[3, ])
 })
 
 test_that("Can update state with a matrix and index", {
@@ -184,7 +190,9 @@ test_that("Can update state with a matrix and index", {
   prev_state <- res[, 1, 10]
   new_state <- cbind(prev_state[1] + 10, prev_state[1] + 11, prev_state[1] + 12)
   mod$update_state(state = new_state, index = 1)
-  expect_identical(mod$state(), rbind(new_state, rep(prev_state[2], 3)))
+  state <- mod$state()
+  expect_identical(state[1:2, ], rbind(new_state, rep(prev_state[2], 3)))
+  expect_identical(state[1, ] + state[2, ], state[3, ])
 })
 
 test_that("Updating state does not reset statistics", {
@@ -249,22 +257,22 @@ test_that("Can update pars", {
   mod <- gen$new(initial_pars, initial_time, n_particles)
   y1 <- mod$run(1)
   analytic <- logistic_analytic(initial_r, initial_k, 1, c(1, 1))
-  expect_equal(mod$state(), y1)
+  expect_equal(mod$state(1:2), y1)
   expect_equal(analytic, y1[, 1, drop = FALSE], tolerance = 1e-7)
   new_k <- c(200, 200)
   new_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
                    K1 = new_k[[1]], K2 = new_k[[2]])
   mod$update_state(pars = new_pars, set_initial_state = FALSE)
-  expect_equal(mod$state(), y1)
+  expect_equal(mod$state(1:2), y1)
   expect_equal(mod$time(), 1)
   expect_equal(mod$pars(), new_pars)
 
   y2 <- mod$run(2)
 
-  expect_equal(mod$state(), y2)
+  expect_equal(mod$state(1:2), y2)
 
   mod$update_state(time = 1, pars = new_pars, state = y1)
-  expect_equal(mod$state(), y1)
+  expect_equal(mod$state(1:2), y1)
   expect_equal(mod$time(), 1)
   expect_equal(mod$pars(), new_pars)
 
@@ -288,13 +296,13 @@ test_that("Updating pars set initial state by default", {
   initial_time <- 0
   mod <- gen$new(initial_pars, initial_time, n_particles)
   y1 <- mod$run(2)
-  expect_equal(mod$state(), y1)
+  expect_equal(mod$state(1:2), y1)
   new_k <- c(200, 200)
   new_pars <- list(r1 = initial_r[[1]], r2 = initial_r[[2]],
                    K1 = new_k[[1]], K2 = new_k[[2]])
   mod$update_state(pars = new_pars)
   expect_equal(mod$pars(), new_pars)
-  expect_equal(mod$state(), matrix(1, ncol = n_particles, nrow = 2))
+  expect_equal(mod$state(1:2), matrix(1, ncol = n_particles, nrow = 2))
 })
 
 test_that("Error if particle re-ordering index is wrong length", {
@@ -331,7 +339,7 @@ test_that("Can reorder particles", {
   mod$update_state(state = y)
 
   mod$reorder(c(5, 4, 3, 2, 1))
-  ans <- mod$state()
+  ans <- mod$state(1:2)
   expect_equal(ans, y[, 5:1])
 
   # also check that the stepper has been re-initialised correctly
@@ -361,7 +369,7 @@ test_that("Can reorder particles with duplication", {
 
   order_index <- c(1, 2, 2, 2, 2)
   mod$reorder(order_index)
-  ans <- mod$state()
+  ans <- mod$state(1:2)
   expect_equal(ans, y[, order_index])
 
   # also check that the stepper has been re-initialised correctly
