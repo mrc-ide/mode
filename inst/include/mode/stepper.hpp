@@ -156,7 +156,7 @@ public:
     std::copy_n(y_next.begin(), n, y.begin()); // y = y_next
   }
 
-  const std::vector<double>& output() const {
+  const std::vector<double>& state() const {
     return y;
   }
 

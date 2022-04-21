@@ -17,7 +17,7 @@ test_that("Returns full state when no index set", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
-  expect_equal(dim(res), c(2, n_particles))
+  expect_equal(dim(res), c(3, n_particles))
 
   state <- mod$state()
   expect_identical(res, state)

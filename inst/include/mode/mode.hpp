@@ -33,7 +33,7 @@ public:
   }
 
   size_t n_state_full() {
-    return solver_[0].size();
+    return m_.size() + m_.n_output();
   }
 
   size_t n_state() const {

@@ -14,12 +14,20 @@ public:
   }
 
   void rhs(double t,
-           const std::vector<double> &y,
-           std::vector<double> &dydt) const {
+           const std::vector<double>& y,
+           std::vector<double>& dydt) const {
     const double N1 = y[0];
     const double N2 = y[1];
     dydt[0] = shared->r1 * N1 * (1 - N1 / shared->K1);
     dydt[1] = shared->r2 * N2 * (1 - N2 / shared->K2);
+  }
+
+  void output(double t,
+              const std::vector<double>& y,
+              std::vector<double>& output) const {
+    const double N1 = y[0];
+    const double N2 = y[1];
+    output[0] = N1 + N2;
   }
 
   std::vector<double> initial(double time) {
@@ -29,6 +37,10 @@ public:
 
   size_t size() const {
     return 2;
+  }
+
+  size_t n_output() const {
+    return 1;
   }
 
 private:
