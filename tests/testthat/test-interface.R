@@ -287,3 +287,52 @@ test_that("Can run a stochastic model", {
   rng <- dust::dust_rng$new(n_streams = np, seed = 1L)
   expect_equal(y_end[3, ], apply(exp(rng$normal(5, 0, 0.1)), 2, prod))
 })
+
+
+test_that("Can validate the stochastic schedule times", {
+  path <- mode_file("examples/stochastic.cpp")
+  gen <- mode(path, quiet = TRUE)
+
+  np <- 10
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.1)
+  mod <- gen$new(pars, 0, np, seed = 1L)
+  expect_error(
+    mod$set_stochastic_schedule(c(1, 2, 3, 3, 4, 5)),
+    "schedule must be strictly increasing; see time[4]",
+    fixed = TRUE)
+  expect_error(
+    mod$set_stochastic_schedule(c(1, 2, 3, 4, 1, 2, 3)),
+    "schedule must be strictly increasing; see time[5]",
+    fixed = TRUE)
+
+  ## No schedule set:
+  y <- mod$run(10)
+  expect_equal(y[3, ], rep(1, np))
+})
+
+
+test_that("A null schedule clears stochastic schedule", {
+  path <- mode_file("examples/stochastic.cpp")
+  gen <- mode(path, quiet = TRUE)
+
+  np <- 10
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.1)
+  mod <- gen$new(pars, 0, np, seed = 1L)
+  mod$set_stochastic_schedule(0:5)
+  mod$set_index(3)
+
+  rng <- dust::dust_rng$new(n_streams = np, seed = 1L)
+  ## running draws 6 numbers per particle:
+  y <- drop(mod$run(10))
+  expect_equal(y, apply(exp(rng$normal(6, 0, 0.1)), 2, prod))
+
+  ## reset and rerun, draw another set:
+  mod$update_state(time = 0)
+  y <- drop(mod$run(10))
+  expect_equal(y, apply(exp(rng$normal(6, 0, 0.1)), 2, prod))
+
+  mod$update_state(time = 0)
+  mod$set_stochastic_schedule(NULL)
+  y <- drop(mod$run(10))
+  expect_equal(y, rep(1, np))
+})

@@ -56,8 +56,8 @@ void mode_set_stochastic_schedule(SEXP ptr, cpp11::sexp r_time) {
     time = cpp11::as_cpp<std::vector<double>>(cpp11::as_doubles(r_time));
     for (size_t i = 1; i < time.size(); ++i) {
       if (time[i] <= time[i - 1]) {
-        cpp11::stop("stochastic schedule must be strictly increasing (see %d)",
-                    i);
+        cpp11::stop("schedule must be strictly increasing; see time[%d]",
+                    i + 1);
       }
     }
   }
