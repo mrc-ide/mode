@@ -249,3 +249,41 @@ test_that("can run to noninteger time", {
   expect_equal(y, logistic_analytic(c(0.1, 0.2), c(100, 100), t, c(1, 1)),
                tolerance = 1e-7)
 })
+
+
+test_that("Can run a stochastic model", {
+  path <- mode_file("examples/stochastic.cpp")
+  gen <- mode(path, quiet = TRUE)
+
+  np <- 10
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.1)
+  mod <- gen$new(pars, 0, np, seed = 1L)
+  mod$set_stochastic_schedule(0:5)
+
+  rng <- dust::dust_rng$new(n_streams = np, seed = 1L)
+
+  expect_equal(mod$state(), matrix(1, 3, np))
+
+  ## Events happen at t + eps so running to t leaves things unchanged:
+  mod$run(0)
+  expect_equal(mod$state(), matrix(1, 3, np))
+
+  ## Any bit beyond and we will run the stochastic update
+  y1 <- mod$run(1e-8)
+  expect_equal(y1[1:2, ], matrix(1, 2, np))
+  expect_equal(y1[3, ], drop(exp(rng$normal(1, 0, 0.1))))
+
+  ## Run up to the next one and we won't run a stochastic step, but we
+  ## will complete a full deterministic step
+  y2 <- mod$run(1)
+  expect_equal(y2[1, ],
+               drop(logistic_analytic(0.1, 100 * y1[3, ], 1, c(1, 1))))
+  expect_equal(y2[2, ],
+               drop(logistic_analytic(0.2, 200 * y1[3, ], 1, c(1, 1))))
+  expect_equal(y2[3, ], y1[3, ])
+
+  ## Up to the end we've run 5 stochastic updates (but not the 6th)
+  y_end <- mod$run(5)
+  rng <- dust::dust_rng$new(n_streams = np, seed = 1L)
+  expect_equal(y_end[3, ], apply(exp(rng$normal(5, 0, 0.1)), 2, prod))
+})

@@ -17,6 +17,7 @@ BugReports: https://github.com/mrc-ide/mode/issues
 Imports:
     R6,
     cpp11,
+    dust,
     glue,
     pkgbuild (>= 1.2.0),
     pkgload
@@ -27,3 +28,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 SystemRequirements: C++11
+Remotes:
+    mrc-ide/dust

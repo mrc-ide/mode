@@ -16,10 +16,14 @@ class container {
 public:
   using model_type = T;
   using pars_type = mode::pars_type<T>;
+  using rng_state_type = typename T::rng_state_type;
+  using rng_int_type = typename rng_state_type::int_type;
 
   container(const pars_type &pars, const double time,
-            const size_t n_particles) : n_particles_(n_particles),
-                                        m_(model_type(pars)) {
+            const size_t n_particles, const std::vector<rng_int_type>& seed)
+    : n_particles_(n_particles),
+      m_(model_type(pars)),
+      rng_(n_particles_, seed, false) {
     auto ctl = control();
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
@@ -44,6 +48,12 @@ public:
     index_ = index;
   }
 
+  void set_stochastic_schedule(const std::vector<double>& time) {
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_stochastic_schedule(time);
+    }
+  }
+
   void initialise_index() {
     const size_t n = n_state_full();
     index_.clear();
@@ -59,7 +69,7 @@ public:
 
   void run(double end_time) {
     for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].solve(end_time);
+      solver_[i].solve(end_time, rng_.state(i));
     }
   }
 
@@ -149,6 +159,7 @@ private:
   size_t n_particles_;
   model_type m_;
   std::vector<size_t> index_;
+  dust::random::prng<rng_state_type> rng_;
 };
 
 }

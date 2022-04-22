@@ -8,6 +8,9 @@
 #include <cpp11/doubles.hpp>
 #include <cpp11/protect.hpp>
 
+#include <dust/random/random.hpp>
+#include <dust/r/random.hpp>
+
 #include <mode/mode.hpp>
 #include <mode/r/helpers.hpp>
 
@@ -15,9 +18,12 @@ namespace mode {
 namespace r {
 
 template <typename T>
-cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles) {
+cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
+                       cpp11::sexp r_seed) {
   auto pars = mode::mode_pars<T>(r_pars);
-  container<T> *d = new mode::container<T>(pars, time, n_particles);
+  auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
+
+  container<T> *d = new mode::container<T>(pars, time, n_particles, seed);
   cpp11::external_pointer<container<T>> ptr(d, true, false);
   return cpp11::writable::list({ptr});
 }
@@ -39,6 +45,23 @@ void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
         mode::r::r_index_to_index(r_index, index_max);
     obj->set_index(index);
   }
+}
+
+template <typename T>
+void mode_set_stochastic_schedule(SEXP ptr, cpp11::sexp r_time) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+
+  std::vector<double> time;
+  if (r_time != R_NilValue) {
+    time = cpp11::as_cpp<std::vector<double>>(cpp11::as_doubles(r_time));
+    for (size_t i = 1; i < time.size(); ++i) {
+      if (time[i] <= time[i - 1]) {
+        cpp11::stop("stochastic schedule must be strictly increasing (see %d)",
+                    i);
+      }
+    }
+  }
+  obj->set_stochastic_schedule(time);
 }
 
 template <typename T>

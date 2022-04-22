@@ -22,7 +22,10 @@ private:
   double h_swap_;
   double last_error_swap_;
   stats stats_swap_;
+  std::vector<double> stochastic_schedule_;
 public:
+  using rng_state_type = typename Model::rng_state_type;
+
   solver(Model m,
          double t,
          std::vector<double> y,
@@ -100,10 +103,24 @@ public:
     return t_;
   }
 
-  void solve(double t) {
-    while (t_ < t) {
-      step(t);
+  void solve(double t_end, rng_state_type& rng_state) {
+    // TODO: we can tidy this bit of bookkeeping up later once it's
+    // correct; it should be possible to hold a pointer to where we
+    // are, and update it when doing set_time()
+    const auto end = stochastic_schedule_.end();
+    auto it = std::lower_bound(stochastic_schedule_.begin(), end, t_);
+    while (t_ < t_end) {
+      if (it != end && *it == t_) {
+        stepper_.update_stochastic(t_, rng_state);
+        ++it;
+      }
+      const double t_next = it == end ? t_end : std::min(*it, t_end);
+      step(t_next);
     }
+  }
+
+  void set_stochastic_schedule(const std::vector<double>& time) {
+    stochastic_schedule_ = time;
   }
 
   void set_time(double t, bool reset_step_size) {
