@@ -10,17 +10,17 @@ test_that("Can compile a simple model", {
   expect_equal(mod$n_particles(), n_particles)
 })
 
-test_that("Returns full state but not output from run when no index set", {
+test_that("Returns full state from run when no index set", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
-  expect_equal(dim(res), c(2, n_particles))
+  expect_equal(dim(res), c(3, n_particles))
 
   state <- mod$state()
-  expect_identical(res, state[1:2, ])
+  expect_identical(res, state)
 })
 
 test_that("Returns state from run for set index", {
@@ -44,7 +44,7 @@ test_that("Can get arbitrary partial state", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
-  expect_equal(dim(res), c(2, n_particles))
+  expect_equal(dim(res), c(3, n_particles))
 
   state <- mod$state(1)
   expect_identical(state, res[1, , drop = FALSE])
@@ -53,7 +53,7 @@ test_that("Can get arbitrary partial state", {
   expect_identical(state, res[2, , drop = FALSE])
 
   state <- mod$state()
-  expect_identical(state, rbind(res, res[1, ] + res[2, ]))
+  expect_identical(state, res)
 })
 
 test_that("Error if partial state index is invalid", {
@@ -228,7 +228,7 @@ test_that("Can get model size", {
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   mod <- gen$new(pars, 1, 1)
-  expect_equal(mod$n_state(), 2)
+  expect_equal(mod$n_state(), 3)
   expect_equal(mod$n_state_full(), 3)
   mod$set_index(1)
   expect_equal(mod$n_state(), 1)

@@ -49,7 +49,7 @@ public:
   }
 
   void initialise_index() {
-    const size_t n = n_state();
+    const size_t n = n_output_full();
     index_.clear();
     index_.reserve(n);
     for (size_t i = 0; i < n; ++i) {

@@ -55,8 +55,13 @@ size_t mode_{{name}}_n_state(SEXP ptr) {
 }
 
 [[cpp11::register]]
-size_t mode_{{name}}_n_state_full(SEXP ptr) {
-  return mode::r::mode_n_state_full <mode::container<{{class}}>>(ptr);
+size_t mode_{{name}}_n_output(SEXP ptr) {
+  return mode::r::mode_n_output<mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
+size_t mode_{{name}}_n_output_full(SEXP ptr) {
+  return mode::r::mode_n_output_full<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]
