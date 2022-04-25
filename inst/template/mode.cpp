@@ -3,8 +3,9 @@
 {{model}}
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time, size_t n_particles) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles);
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time, size_t n_particles,
+                         cpp11::sexp seed) {
+  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, seed);
 }
 
 [[cpp11::register]]
@@ -47,6 +48,11 @@ void mode_{{name}}_update_state(SEXP ptr,
 [[cpp11::register]]
 void mode_{{name}}_set_index(SEXP ptr, SEXP index) {
   return mode::r::mode_set_index<mode::container<{{class}}>>(ptr, index);
+}
+
+[[cpp11::register]]
+void mode_{{name}}_set_stochastic_schedule(SEXP ptr, SEXP time) {
+  return mode::r::mode_set_stochastic_schedule<mode::container<{{class}}>>(ptr, time);
 }
 
 [[cpp11::register]]
