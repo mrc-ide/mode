@@ -31,6 +31,12 @@ public:
     dydt[2] = 0;
   }
 
+  std::vector<double>::iterator
+  output(double t,
+         std::vector<double>::iterator end_state) const {
+    return end_state + 3;
+  }
+
   void update_stochastic(double t, std::vector<double>& y,
                          rng_state_type& rng_state) {
     const double r = dust::random::normal<double>(rng_state, 0, shared->v);
@@ -44,6 +50,10 @@ public:
 
   size_t size() const {
     return 3;
+  }
+
+  size_t n_output() const {
+    return 0;
   }
 
 private:
