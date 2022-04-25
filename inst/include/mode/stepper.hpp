@@ -61,6 +61,7 @@ private:
   std::vector<double> k6;
 
 public:
+  using rng_state_type = typename Model::rng_state_type;
 
   stepper(Model m) : m(m), n(m.size()), y(n), y_next(n), y_stiff(n), k1(n),
                      k2(n), k3(n), k4(n), k5(n), k6(n) {}
@@ -149,6 +150,11 @@ public:
 
   void initialise(double t) {
     m.rhs(t, y, k1);
+  }
+
+  void update_stochastic(double t, rng_state_type& rng_state) {
+    m.update_stochastic(t, y, rng_state);
+    initialise(t); // must recalculate dydt at this point
   }
 
   void step_complete(double t, double h) {

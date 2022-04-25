@@ -11,8 +11,8 @@
   ),
 
   public = list(
-    initialize = function(pars, time, n_particles) {
-      res <- mode_{{name}}_alloc(pars, time, n_particles)
+    initialize = function(pars, time, n_particles, seed = NULL) {
+      res <- mode_{{name}}_alloc(pars, time, n_particles, seed)
       private$ptr_ <- res[[1]]
       private$pars_ <- pars
       private$n_particles_ <- n_particles
@@ -37,6 +37,11 @@
     set_index = function(index) {
       mode_{{name}}_set_index(private$ptr_, index)
       private$index_ <- index
+      invisible()
+    },
+
+    set_stochastic_schedule = function(time) {
+      mode_{{name}}_set_stochastic_schedule(private$ptr_, time)
       invisible()
     },
 
