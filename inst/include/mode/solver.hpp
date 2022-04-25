@@ -104,7 +104,7 @@ public:
     return t_;
   }
 
-  void solve(int t) {
+  void solve(double t) {
     while (t_ < t) {
       step(t);
     }

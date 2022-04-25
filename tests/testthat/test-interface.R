@@ -237,3 +237,18 @@ test_that("Can get model size", {
   expect_equal(mod$n_state(), 3)
   expect_equal(mod$n_state_full(), 3)
 })
+
+
+test_that("can run to noninteger time", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  mod <- gen$new(pars, 0, 1)
+
+  t <- 3.95
+
+  y <- mod$run(t)
+  expect_equal(mod$time(), t)
+  expect_equal(y, logistic_analytic(c(0.1, 0.2), c(100, 100), t, c(1, 1)),
+               tolerance = 1e-7)
+})
