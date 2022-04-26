@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "initial_step_size.hpp"
 #include "utils.hpp"
 
 namespace mode {
@@ -49,7 +50,8 @@ template<typename Model>
 class stepper {
 private:
   Model m;
-  size_t n;
+  size_t n_var;
+  size_t n_out;
   std::vector<double> y;
   std::vector<double> y_next;
   std::vector<double> y_stiff;
@@ -59,46 +61,48 @@ private:
   std::vector<double> k4;
   std::vector<double> k5;
   std::vector<double> k6;
+  std::vector<double> output;
 
 public:
   using rng_state_type = typename Model::rng_state_type;
 
-  stepper(Model m) : m(m), n(m.size()), y(n), y_next(n), y_stiff(n), k1(n),
-                     k2(n), k3(n), k4(n), k5(n), k6(n) {}
+  stepper(Model m) : m(m), n_var(m.n_variables()), n_out(m.n_output()),
+                     y(n_var), y_next(n_var), y_stiff(n_var), k1(n_var),
+                     k2(n_var), k3(n_var), k4(n_var),
+                     k5(n_var), k6(n_var), output(n_out) {}
 
   void step(double t, double h) {
-
-    for (size_t i = 0; i < n; ++i) { // 22
+    for (size_t i = 0; i < n_var; ++i) { // 22
       y_next[i] = y[i] + h * A21 * k1[i];
     }
     m.rhs(t + C2 * h, y_next, k2);
-    for (size_t i = 0; i < n; ++i) { // 23
+    for (size_t i = 0; i < n_var; ++i) { // 23
       y_next[i] = y[i] + h * (A31 * k1[i] + A32 * k2[i]);
     }
     m.rhs(t + C3 * h, y_next, k3);
-    for (size_t i = 0; i < n; ++i) { // 24
+    for (size_t i = 0; i < n_var; ++i) { // 24
       y_next[i] = y[i] + h * (A41 * k1[i] + A42 * k2[i] + A43 * k3[i]);
     }
     m.rhs(t + C4 * h, y_next, k4);
-    for (size_t i = 0; i < n; ++i) { // 25
+    for (size_t i = 0; i < n_var; ++i) { // 25
       y_next[i] = y[i] + h * (A51 * k1[i] + A52 * k2[i] + A53 * k3[i] +
                               A54 * k4[i]);
     }
     m.rhs(t + C5 * h, y_next, k5);
-    for (size_t i = 0; i < n; ++i) { // 26
+    for (size_t i = 0; i < n_var; ++i) { // 26
       y_stiff[i] = y[i] + h * (A61 * k1[i] + A62 * k2[i] +
                                A63 * k3[i] + A64 * k4[i] +
                                A65 * k5[i]);
     }
     const double t_next = t + h;
     m.rhs(t_next, y_stiff, k6);
-    for (size_t i = 0; i < n; ++i) { // 27
+    for (size_t i = 0; i < n_var; ++i) { // 27
       y_next[i] = y[i] + h * (A71 * k1[i] + A73 * k3[i] + A74 * k4[i] +
                               A75 * k5[i] + A76 * k6[i]);
     }
     m.rhs(t_next, y_next, k2);
 
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n_var; ++i) {
       k4[i] = h * (E1 * k1[i] + E3 * k3[i] + E4 * k4[i] +
                    E5 * k5[i] + E6 * k6[i] + E7 * k2[i]);
     }
@@ -107,17 +111,17 @@ public:
 
   double error(double atol, double rtol) {
     double err = 0.0;
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n_var; ++i) {
       const double sk = atol + rtol *
                                std::max(std::abs(y[i]), std::abs(y_next[i]));
       err += square(k4[i] / sk);
     }
-    return std::sqrt(err / n);
+    return std::sqrt(err / n_var);
   }
 
   void set_state(double t,
                  std::vector<double>::const_iterator state) {
-    for (size_t i = 0; i < n; ++i, ++state) {
+    for (size_t i = 0; i < n_var; ++i, ++state) {
       y[i] = *state;
     }
   }
@@ -158,18 +162,56 @@ public:
   }
 
   void step_complete(double t, double h) {
-    std::copy_n(k2.begin(), n, k1.begin()); // k1 = k2
-    std::copy_n(y_next.begin(), n, y.begin()); // y = y_next
+    std::copy_n(k2.begin(), n_var, k1.begin()); // k1 = k2
+    std::copy_n(y_next.begin(), n_var, y.begin()); // y = y_next
   }
 
   const std::vector<double>& state() const {
     return y;
   }
 
-  void state(std::vector<double>::iterator end_state) {
+  std::vector<double>::iterator
+  state(double t,
+        const std::vector<size_t>& index,
+        std::vector<double>::iterator end_state) {
+    auto n = index.size();
+    bool have_run_output = false;
     for (size_t i = 0; i < n; ++i, ++end_state) {
-      *end_state = y[i];
+      auto j = index[i];
+      if (j < n_var) {
+        *end_state = y[j];
+      } else {
+        if (!have_run_output) {
+          m.output(t, y, output);
+          have_run_output = true;
+        }
+        *end_state = output[j - n_var];
+      }
     }
+    return end_state;
+  }
+
+  std::vector<double>::iterator
+  state(double t,
+        std::vector<double>::iterator end_state) {
+    auto n = n_var + n_out;
+    bool have_run_output = false;
+    for (size_t i = 0; i < n; ++i, ++end_state) {
+      if (i < n_var) {
+        *end_state = y[i];
+      } else {
+        if (!have_run_output) {
+          m.output(t, y, output);
+          have_run_output = true;
+        }
+        *end_state = output[i - n_var];
+      }
+    }
+    return end_state;
+  }
+
+  double init_step_size(double t, control ctl) {
+    return initial_step_size(m, t, y, ctl);
   }
 
 };

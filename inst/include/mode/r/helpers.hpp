@@ -90,26 +90,26 @@ cpp11::sexp stats_array(const std::vector<size_t>& dat,
 
 inline
 std::vector<double> validate_state(cpp11::sexp r_state,
-                                   int n_state,
+                                   int n_var,
                                    int n_particles) {
   if (r_state == R_NilValue) {
     return std::vector<double>(0);
   }
   cpp11::doubles r_state_data = cpp11::as_cpp<cpp11::doubles>(r_state);
   const size_t state_len = r_state_data.size();
-  auto dim = object_dimensions(r_state, n_state);
+  auto dim = object_dimensions(r_state, n_var);
   if (dim.size() > 2) {
     cpp11::stop("Expected 'state' to have at most 2 dimensions");
   }
   if (dim.size() == 2) {
-    if (dim[0] != n_state || dim[1] != n_particles) {
+    if (dim[0] != n_var || dim[1] != n_particles) {
       cpp11::stop("Expected 'state' to be a %d by %d matrix but was %d by %d",
-                  n_state, n_particles, dim[0], dim[1]);
+                  n_var, n_particles, dim[0], dim[1]);
     }
   }
-  if (dim.size() == 1 && static_cast<int>(state_len) != n_state) {
+  if (dim.size() == 1 && static_cast<int>(state_len) != n_var) {
     cpp11::stop("Expected 'state' to be a vector of length %d but was length %d",
-                n_state, state_len);
+                n_var, state_len);
   }
   std::vector<double> ret(state_len);
   std::copy_n(REAL(r_state_data.data()), state_len, ret.begin());

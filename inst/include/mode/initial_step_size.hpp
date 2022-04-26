@@ -9,7 +9,7 @@ double
 initial_step_size(Model m, double t, std::vector<double> y, control ctl) {
 
   const double order = 5;
-  const size_t n = m.size();
+  const size_t n = m.n_variables();
   std::vector<double> f0(n);
   std::vector<double> f1(n);
   std::vector<double> y1(n);

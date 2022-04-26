@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "control.hpp"
-#include "initial_step_size.hpp"
 #include "stats.hpp"
 #include "stepper.hpp"
 
@@ -11,19 +10,17 @@ namespace mode {
 template<typename Model>
 class solver {
 private:
-  Model m_;
   double t_;
   double h_;
   control ctl_;
   stats stats_;
   double last_error_;
   stepper<Model> stepper_;
-  size_t size_;
+  size_t n_variables_;
   size_t n_output_;
   double h_swap_;
   double last_error_swap_;
   stats stats_swap_;
-  std::vector<double> state_full_;
   std::vector<double> stochastic_schedule_;
 public:
   using rng_state_type = typename Model::rng_state_type;
@@ -31,13 +28,11 @@ public:
   solver(Model m,
          double t,
          std::vector<double> y,
-         control ctl) : m_(m),
-                        t_(t),
+         control ctl) : t_(t),
                         ctl_(ctl),
                         stepper_(m),
-                        size_(m.size()),
-                        n_output_(m.n_output()),
-                        state_full_(size_ + n_output_) {
+                        n_variables_(m.n_variables()),
+                        n_output_(m.n_output()) {
     stats_.reset();
     set_state(t, y);
     set_initial_step_size();
@@ -138,7 +133,7 @@ public:
   }
 
   void set_initial_step_size() {
-    h_ = initial_step_size(m_, t_, stepper_.state(), ctl_);
+    h_ = stepper_.init_step_size(t_, ctl_);
   }
 
   void set_state(double t,
@@ -184,31 +179,22 @@ public:
   }
 
   void set_model(Model m) {
-    m_ = m;
     stepper_.set_model(m);
   }
 
-  size_t size() {
-    return size_;
+  size_t n_variables() {
+    return n_variables_;
   }
 
   std::vector<double>::iterator
   state(const std::vector<size_t>& index,
-             std::vector<double>::iterator end_state) {
-    auto it = state_full_.begin();
-    stepper_.state(it);
-    m_.output(t_, it);
-    for (size_t i = 0; i < index.size(); ++i, end_state++) {
-        *end_state = state_full_[index[i]];
-    }
-    return end_state;
+        std::vector<double>::iterator end_state) {
+    return stepper_.state(t_, index, end_state);
   }
 
   std::vector<double>::iterator
-  state_full(std::vector<double>::iterator end_state) {
-    stepper_.state(end_state);
-    end_state = m_.output(t_, end_state);
-    return end_state;
+  state(std::vector<double>::iterator end_state) {
+    return stepper_.state(t_, end_state);
   }
 
   std::vector<size_t>::iterator

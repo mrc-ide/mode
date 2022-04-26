@@ -40,7 +40,7 @@ void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
   if (r_index == R_NilValue) {
     obj->initialise_index();
   } else {
-    const size_t index_max = obj->n_output_full();
+    const size_t index_max = obj->n_state_full();
     const std::vector <size_t> index =
         mode::r::r_index_to_index(r_index, index_max);
     obj->set_index(index);
@@ -74,23 +74,23 @@ cpp11::sexp mode_run(SEXP ptr, double end_time) {
   }
   obj->run(end_time);
 
-  std::vector<double> dat(obj->n_output() * obj->n_particles());
-  obj->state(dat);
-  return mode::r::state_array(dat, obj->n_output(), obj->n_particles());
+  std::vector<double> dat(obj->n_state_run() * obj->n_particles());
+  obj->state_run(dat);
+  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles());
 }
 
 template <typename T>
 cpp11::sexp mode_state_full(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  std::vector<double> dat(obj->n_output_full() * obj->n_particles());
+  std::vector<double> dat(obj->n_state_full() * obj->n_particles());
   obj->state_full(dat);
-  return mode::r::state_array(dat, obj->n_output_full(), obj->n_particles());
+  return mode::r::state_array(dat, obj->n_state_full(), obj->n_particles());
 }
 
 template <typename T>
 cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  const size_t index_max = obj->n_output_full();
+  const size_t index_max = obj->n_state_full();
   const std::vector <size_t> index =
       mode::r::r_index_to_index(r_index, index_max);
   size_t n = index.size();
@@ -116,7 +116,7 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
       cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
 
   std::vector<size_t> index;
-  const size_t index_max = obj->n_state();
+  const size_t index_max = obj->n_variables();
   if (r_index != R_NilValue) {
     index = mode::r::r_index_to_index(r_index, index_max);
   } else {
@@ -146,21 +146,21 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
 }
 
 template <typename T>
-size_t mode_n_state(SEXP ptr) {
+size_t mode_n_state_full(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_state();
+  return obj->n_state_full();
 }
 
 template <typename T>
-size_t mode_n_output(SEXP ptr) {
+size_t mode_n_state_run(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_output();
+  return obj->n_state_run();
 }
 
 template <typename T>
-size_t mode_n_output_full(SEXP ptr) {
+size_t mode_n_variables(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_output_full();
+  return obj->n_variables();
 }
 
 template <typename T>

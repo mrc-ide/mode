@@ -59,27 +59,27 @@
       mode_{{name}}_stats(private$ptr_)
     },
 
-    n_state = function() {
-      mode_{{name}}_n_output(private$ptr_)
+    n_state_run = function() {
+      mode_{{name}}_n_state_run(private$ptr_)
     },
 
     n_state_full = function() {
-      mode_{{name}}_n_output_full(private$ptr_)
+      mode_{{name}}_n_state_full(private$ptr_)
     },
 
     update_state = function(pars = NULL, time = NULL,
                             state = NULL, index = NULL,
                             set_initial_state = NULL, reset_step_size = NULL) {
       dim_state <- dim(state)
-      n <- mode_{{name}}_n_state(private$ptr_)
-      n_output <- mode_{{name}}_n_output_full(private$ptr_)
+      n_var <- mode_{{name}}_n_variables(private$ptr_)
+      n_state_full <- mode_{{name}}_n_state_full(private$ptr_)
       if (is.null(dim_state)) {
-        if (length(state) == n_output) {
-          state <- state[1:n]
+        if (length(state) == n_state_full) {
+          state <- state[1:n_var]
         }
       } else if (length(dim_state) == 2) {
-        if (dim_state[1] == n_output) {
-          state <- state[1:n, ]
+        if (dim_state[1] == n_state_full) {
+          state <- state[1:n_var, ]
         }
       }
 

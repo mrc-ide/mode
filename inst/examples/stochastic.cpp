@@ -31,10 +31,9 @@ public:
     dydt[2] = 0;
   }
 
-  std::vector<double>::iterator
-  output(double t,
-         std::vector<double>::iterator end_state) const {
-    return end_state + 3;
+  void output(double t,
+              const std::vector<double>& y,
+              std::vector<double>& output) {
   }
 
   void update_stochastic(double t, std::vector<double>& y,
@@ -48,7 +47,7 @@ public:
     return ret;
   }
 
-  size_t size() const {
+  size_t n_variables() const {
     return 3;
   }
 
