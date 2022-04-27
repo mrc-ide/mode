@@ -127,6 +127,8 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
     }
   }
 
+  const size_t n_state_full = obj->n_state_full();
+
   auto set_initial_state = mode::r::validate_set_initial_state(r_state,
                                                                r_pars,
                                                                r_time,
@@ -137,6 +139,7 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
   auto time = mode::r::validate_time(r_time);
   auto state = mode::r::validate_state(r_state,
                                        index.size(),
+                                       n_state_full,
                                        static_cast<int>(obj->n_particles()));
   if (r_pars != R_NilValue) {
     auto pars = mode::mode_pars<T>(r_pars);

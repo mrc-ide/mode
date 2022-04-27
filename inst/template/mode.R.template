@@ -70,19 +70,6 @@
     update_state = function(pars = NULL, time = NULL,
                             state = NULL, index = NULL,
                             set_initial_state = NULL, reset_step_size = NULL) {
-      dim_state <- dim(state)
-      n_var <- mode_{{name}}_n_variables(private$ptr_)
-      n_state_full <- mode_{{name}}_n_state_full(private$ptr_)
-      if (is.null(dim_state)) {
-        if (length(state) == n_state_full) {
-          state <- state[1:n_var]
-        }
-      } else if (length(dim_state) == 2) {
-        if (dim_state[1] == n_state_full) {
-          state <- state[1:n_var, ]
-        }
-      }
-
       mode_{{name}}_update_state(private$ptr_, pars, time, state, index,
                                  set_initial_state, reset_step_size)
       private$pars_ <- pars
