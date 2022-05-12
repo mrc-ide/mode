@@ -157,5 +157,66 @@ bool validate_reset_step_size(SEXP r_time,
   return reset_step_size;
 }
 
+inline
+size_t validate_int(SEXP r_value, size_t default_value, const char * name) {
+  size_t final_value = default_value;
+  if (r_value == R_NilValue) {
+    return final_value;
+  }
+  cpp11::integers values_int = as_integer(r_value, name);
+  if (values_int.size() != 1) {
+    cpp11::stop("Expected '%s' to be a scalar value", name);
+  }
+  return static_cast<size_t>(values_int[0]);
+}
+
+inline
+double validate_double(SEXP r_value, double default_value, const char * name) {
+  double final_value = default_value;
+  if (r_value == R_NilValue) {
+    return final_value;
+  }
+  cpp11::doubles values = cpp11::as_cpp<cpp11::doubles>(r_value);
+  if (values.size() != 1) {
+    cpp11::stop("Expected '%s' to be a scalar value", name);
+  }
+  return values[0];
+}
+
+inline
+mode::control validate_control(cpp11::sexp r_control) {
+  if (r_control == R_NilValue) {
+    return mode::control();
+  }
+  else {
+    auto control = cpp11::as_cpp<cpp11::list>(r_control);
+    auto max_steps = mode::r::validate_int(control[0], 1000, "max_steps");
+    auto atol = mode::r::validate_double(control[1], 1e-6, "atol");
+    auto rtol = mode::r::validate_double(control[2], 1e-6, "rtol");
+    auto step_size_min = mode::r::validate_double(control[3],
+                                                  1e-8,
+                                                  "step_size_min");
+    auto step_size_max =
+        mode::r::validate_double(control[4],
+                                 std::numeric_limits<double>::infinity(),
+                                 "step_size_max");
+    return mode::control(max_steps, atol, rtol, step_size_min,
+                         step_size_max);
+  }
+}
+
+inline
+cpp11::sexp control(const mode::control ctl) {
+  using namespace cpp11::literals;
+  auto ret = cpp11::writable::list({"max_steps"_nm = ctl.max_steps,
+                                    "atol"_nm = ctl.atol,
+                                    "rtol"_nm = ctl.rtol,
+                                    "step_size_min"_nm = ctl.step_size_min,
+                                    "step_size_max"_nm = ctl.step_size_max});
+
+  ret.attr("class") = "mode_control";
+  return ret;
+}
+
 }
 }

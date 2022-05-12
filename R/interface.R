@@ -40,6 +40,13 @@ mode <- function(filename, quiet = FALSE, workdir = NULL, skip_cache = FALSE) {
   pkg$env[[config$name]]
 }
 
+mode_control <- function(max_steps = NULL, atol = NULL, rtol = NULL,
+                         step_size_min = NULL, step_size_max = NULL) {
+  ctl <- list(max_steps = max_steps, atol = atol, rtol = rtol,
+              step_size_min = step_size_min, step_size_max = step_size_max)
+  class(ctl) <- "mode_control"
+  ctl
+}
 
 compile_mode <- function(filename, config, workdir, quiet) {
   path <- generate_mode(filename, config, workdir)

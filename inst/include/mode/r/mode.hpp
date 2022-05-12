@@ -19,13 +19,20 @@ namespace r {
 
 template <typename T>
 cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
-                       cpp11::sexp r_seed) {
+                       cpp11::sexp control, cpp11::sexp r_seed) {
   auto pars = mode::mode_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
-
-  container<T> *d = new mode::container<T>(pars, time, n_particles, seed);
+  auto ctl = mode::r::validate_control(control);
+  container<T> *d = new mode::container<T>(pars, time, n_particles, ctl, seed);
   cpp11::external_pointer<container<T>> ptr(d, true, false);
   return cpp11::writable::list({ptr});
+}
+
+template <typename T>
+cpp11::sexp mode_control(SEXP ptr) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  auto ctl = obj->ctl();
+  return mode::r::control(ctl);
 }
 
 template <typename T>

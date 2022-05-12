@@ -20,16 +20,20 @@ public:
   using rng_int_type = typename rng_state_type::int_type;
 
   container(const pars_type &pars, const double time,
-            const size_t n_particles, const std::vector<rng_int_type>& seed)
-    : n_particles_(n_particles),
-      m_(model_type(pars)),
-      rng_(n_particles_, seed, false) {
-    auto ctl = control();
+            const size_t n_particles, const control ctl,
+            const std::vector<rng_int_type>& seed)
+      : n_particles_(n_particles),
+        m_(model_type(pars)),
+        rng_(n_particles_, seed, false) {
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m_, time, y, ctl));
     }
     initialise_index();
+  }
+
+  control ctl() {
+    return solver_[0].ctl();
   }
 
   size_t n_particles() {

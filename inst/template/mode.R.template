@@ -11,8 +11,9 @@
   ),
 
   public = list(
-    initialize = function(pars, time, n_particles, seed = NULL) {
-      res <- mode_{{name}}_alloc(pars, time, n_particles, seed)
+    initialize = function(pars, time, n_particles,
+                          control = NULL, seed = NULL) {
+      res <- mode_{{name}}_alloc(pars, time, n_particles, control, seed)
       private$ptr_ <- res[[1]]
       private$pars_ <- pars
       private$n_particles_ <- n_particles
@@ -47,6 +48,10 @@
 
     index = function() {
       private$index_
+    },
+
+    control = function() {
+      mode_{{name}}_control(private$ptr_)
     },
 
     run = function(end_time) {

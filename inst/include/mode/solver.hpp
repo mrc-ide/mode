@@ -43,6 +43,10 @@ public:
     return t_;
   }
 
+  control ctl() const {
+    return ctl_;
+  }
+
   double step(double tcrit) {
     bool success = false;
     bool reject = false;
