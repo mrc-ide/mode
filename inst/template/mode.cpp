@@ -56,13 +56,18 @@ void mode_{{name}}_set_stochastic_schedule(SEXP ptr, SEXP time) {
 }
 
 [[cpp11::register]]
-size_t mode_{{name}}_n_state(SEXP ptr) {
-  return mode::r::mode_n_state<mode::container<{{class}}>>(ptr);
+size_t mode_{{name}}_n_variables(SEXP ptr) {
+  return mode::r::mode_n_variables<mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
+size_t mode_{{name}}_n_state_run(SEXP ptr) {
+  return mode::r::mode_n_state_run<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]
 size_t mode_{{name}}_n_state_full(SEXP ptr) {
-  return mode::r::mode_n_state_full <mode::container<{{class}}>>(ptr);
+  return mode::r::mode_n_state_full<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]

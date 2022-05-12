@@ -59,8 +59,8 @@
       mode_{{name}}_stats(private$ptr_)
     },
 
-    n_state = function() {
-      mode_{{name}}_n_state(private$ptr_)
+    n_state_run = function() {
+      mode_{{name}}_n_state_run(private$ptr_)
     },
 
     n_state_full = function() {

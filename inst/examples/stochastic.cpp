@@ -31,6 +31,11 @@ public:
     dydt[2] = 0;
   }
 
+  void output(double t,
+              const std::vector<double>& y,
+              std::vector<double>& output) {
+  }
+
   void update_stochastic(double t, std::vector<double>& y,
                          rng_state_type& rng_state) {
     const double r = dust::random::normal<double>(rng_state, 0, shared->v);
@@ -42,8 +47,12 @@ public:
     return ret;
   }
 
-  size_t size() const {
+  size_t n_variables() const {
     return 3;
+  }
+
+  size_t n_output() const {
+    return 0;
   }
 
 private:

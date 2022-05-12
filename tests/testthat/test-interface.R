@@ -10,20 +10,20 @@ test_that("Can compile a simple model", {
   expect_equal(mod$n_particles(), n_particles)
 })
 
-test_that("Returns full state when no index set", {
+test_that("Returns full state from run when no index set", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
-  expect_equal(dim(res), c(2, n_particles))
+  expect_equal(dim(res), c(3, n_particles))
 
   state <- mod$state()
   expect_identical(res, state)
 })
 
-test_that("Returns state for set index", {
+test_that("Returns state from run for set index", {
   path <- mode_file("examples/logistic.cpp")
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
@@ -44,7 +44,7 @@ test_that("Can get arbitrary partial state", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
-  expect_equal(dim(res), c(2, n_particles))
+  expect_equal(dim(res), c(3, n_particles))
 
   state <- mod$state(1)
   expect_identical(state, res[1, , drop = FALSE])
@@ -62,11 +62,11 @@ test_that("Error if partial state index is invalid", {
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
-  expect_error(mod$state(3),
-               "All elements of 'index' must lie in [1, 2]",
+  expect_error(mod$state(4),
+               "All elements of 'index' must lie in [1, 3]",
                fixed = TRUE)
-  expect_error(mod$state(c(1, 2, 3)),
-               "All elements of 'index' must lie in [1, 2]",
+  expect_error(mod$state(c(1, 2, 4)),
+               "All elements of 'index' must lie in [1, 3]",
                fixed = TRUE)
 })
 
@@ -126,7 +126,7 @@ test_that("Can clear index", {
   expect_equal(mod$index(), c(y1 = 1L))
   mod$set_index(NULL)
   expect_equal(
-    mod$run(2),
+    mod$run(2)[1:2, ],
     rbind(rep(analytic[1, 2], n_particles),
           rep(analytic[2, 2], n_particles)),
     tolerance = 1e-7)
@@ -140,13 +140,13 @@ test_that("Cannot set invalid index", {
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   expect_error(mod$set_index(0),
-               "All elements of 'index' must lie in [1, 2]",
+               "All elements of 'index' must lie in [1, 3]",
                fixed = TRUE)
-  expect_error(mod$set_index(3),
-               "All elements of 'index' must lie in [1, 2]",
+  expect_error(mod$set_index(4),
+               "All elements of 'index' must lie in [1, 3]",
                fixed = TRUE)
-  expect_error(mod$set_index(c(1, 2, 3)),
-               "All elements of 'index' must lie in [1, 2]",
+  expect_error(mod$set_index(c(1, 2, 4)),
+               "All elements of 'index' must lie in [1, 3]",
                fixed = TRUE)
 })
 
@@ -228,13 +228,15 @@ test_that("Can get model size", {
   gen <- mode(path, quiet = TRUE)
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   mod <- gen$new(pars, 1, 1)
-  expect_equal(mod$n_state(), 2)
-  expect_equal(mod$n_state_full(), 2)
+  expect_equal(mod$n_state_run(), 3)
+  expect_equal(mod$n_state_full(), 3)
   mod$set_index(1)
-  expect_equal(mod$n_state(), 1)
-  expect_equal(mod$n_state_full(), 2)
+  expect_equal(mod$n_state_run(), 1)
+  expect_equal(mod$n_state_full(), 3)
+  mod$set_index(c(1, 2, 3))
+  expect_equal(mod$n_state_run(), 3)
+  expect_equal(mod$n_state_full(), 3)
 })
-
 
 test_that("can run to noninteger time", {
   path <- mode_file("examples/logistic.cpp")
@@ -246,7 +248,8 @@ test_that("can run to noninteger time", {
 
   y <- mod$run(t)
   expect_equal(mod$time(), t)
-  expect_equal(y, logistic_analytic(c(0.1, 0.2), c(100, 100), t, c(1, 1)),
+  expect_equal(y[1:2, , drop = FALSE],
+               logistic_analytic(c(0.1, 0.2), c(100, 100), t, c(1, 1)),
                tolerance = 1e-7)
 })
 

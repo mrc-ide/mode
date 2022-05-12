@@ -37,11 +37,15 @@ public:
   }
 
   size_t n_state_full() {
-    return solver_[0].size();
+    return m_.n_variables() + m_.n_output();
   }
 
-  size_t n_state() const {
+  size_t n_state_run() const {
     return index_.size();
+  }
+
+  size_t n_variables() {
+    return m_.n_variables();
   }
 
   void set_index(const std::vector<size_t>& index) {
@@ -76,18 +80,19 @@ public:
   void state_full(std::vector<double> &end_state) {
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
-      it = solver_[i].state_full(it);
+      it = solver_[i].state(it);
     }
   }
 
-  void state(std::vector<double> &end_state) {
+  void state_run(std::vector<double> &end_state) {
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
       it = solver_[i].state(index_, it);
     }
   }
 
-  void state(std::vector<double> &end_state, const std::vector<size_t>& index) {
+  void state(std::vector<double> &end_state,
+             const std::vector<size_t>& index) {
     auto it = end_state.begin();
     for (size_t i = 0; i < n_particles_; ++i) {
       it = solver_[i].state(index, it);
