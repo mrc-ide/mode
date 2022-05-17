@@ -4,8 +4,14 @@
 
 [[cpp11::register]]
 SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time, size_t n_particles,
-                         cpp11::sexp seed) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, seed);
+                         cpp11::sexp control, cpp11::sexp seed) {
+  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, control,
+      seed);
+}
+
+[[cpp11::register]]
+cpp11::sexp mode_{{name}}_control(SEXP ptr) {
+  return mode::r::mode_control<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]

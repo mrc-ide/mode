@@ -8,6 +8,40 @@ test_that("Can compile a simple model", {
   expect_equal(mod$time(), pi)
   expect_equal(mod$pars(), pars)
   expect_equal(mod$n_particles(), n_particles)
+  expected_control <- mode_control(max_steps = 10000, rtol = 1e-6, atol = 1e-6,
+                          step_size_min = 1e-8, step_size_max = Inf)
+  expect_equal(mod$control(), expected_control)
+})
+
+test_that("Can compile a simple model with control", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  control <- mode_control(max_steps = 10, rtol = 0.01, atol = 0.02,
+                          step_size_min = 0.1, step_size_max = 1)
+  mod <- gen$new(pars, pi, n_particles, control)
+  ctl <- mod$control()
+  expect_s3_class(control, "mode_control")
+  expect_s3_class(ctl, "mode_control")
+  expect_equal(ctl, control)
+})
+
+test_that("Can compile a simple model with partial control", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  control <- mode_control(max_steps = 10, atol = 0.2)
+  mod <- gen$new(pars, pi, n_particles, control)
+  expect_s3_class(control, "mode_control")
+  ctl <- mod$control()
+  expect_s3_class(ctl, "mode_control")
+  expect_equal(ctl$max_steps, 10)
+  expect_equal(ctl$atol, 0.2)
+  expect_equal(ctl$rtol, 1e-6)
+  expect_equal(ctl$step_size_min, 1e-8)
+  expect_equal(ctl$step_size_max, Inf)
 })
 
 test_that("Returns full state from run when no index set", {
