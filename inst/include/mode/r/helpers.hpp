@@ -16,6 +16,13 @@ int r_index_check(int x, int max) {
 }
 
 inline
+void validate_positive(int x, const char *name) {
+  if (x <= 0) {
+    cpp11::stop("'%s' must be positive (was given %d)", name, x);
+  }
+}
+
+inline
 cpp11::integers as_integer(cpp11::sexp x, const char * name) {
   if (TYPEOF(x) == INTSXP) {
     return cpp11::as_cpp<cpp11::integers>(x);

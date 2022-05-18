@@ -1,7 +1,12 @@
-test_that("Can compile a simple model", {
+logistic_gen <- function() {
   path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  mode(path, quiet = TRUE)
+}
+
+pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+
+test_that("Can compile a simple model", {
+  gen <- logistic_gen()
   n_particles <- 10
   mod <- gen$new(pars, pi, n_particles)
   expect_s3_class(mod, "mode")
@@ -14,13 +19,11 @@ test_that("Can compile a simple model", {
 })
 
 test_that("Can compile a simple model with control", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 10
   control <- mode_control(max_steps = 10, rtol = 0.01, atol = 0.02,
                           step_size_min = 0.1, step_size_max = 1)
-  mod <- gen$new(pars, pi, n_particles, control)
+  mod <- gen$new(pars, pi, n_particles, control = control)
   ctl <- mod$control()
   expect_s3_class(control, "mode_control")
   expect_s3_class(ctl, "mode_control")
@@ -28,12 +31,10 @@ test_that("Can compile a simple model with control", {
 })
 
 test_that("Can compile a simple model with partial control", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 10
   control <- mode_control(max_steps = 10, atol = 0.2)
-  mod <- gen$new(pars, pi, n_particles, control)
+  mod <- gen$new(pars, pi, n_particles, control = control)
   expect_s3_class(control, "mode_control")
   ctl <- mod$control()
   expect_s3_class(ctl, "mode_control")
@@ -58,9 +59,7 @@ test_that("Returns full state from run when no index set", {
 })
 
 test_that("Returns state from run for set index", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   mod$set_index(1)
@@ -72,9 +71,7 @@ test_that("Returns state from run for set index", {
 })
 
 test_that("Can get arbitrary partial state", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   res <- mod$run(2)
@@ -91,9 +88,7 @@ test_that("Can get arbitrary partial state", {
 })
 
 test_that("Error if partial state index is invalid", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
   expect_error(mod$state(4),
@@ -127,8 +122,7 @@ test_that("Can retrieve index", {
 })
 
 test_that("Setting a named index returns names", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
+  gen <- logistic_gen()
   r <- c(0.1, 0.2)
   k <- c(100, 100)
   pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = k[[1]], K2 = k[[2]])
@@ -144,8 +138,7 @@ test_that("Setting a named index returns names", {
 })
 
 test_that("Can clear index", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
+  gen <- logistic_gen()
   r <- c(0.1, 0.2)
   k <- c(100, 100)
   pars <- list(r1 = r[[1]], r2 = r[[2]], K1 = k[[1]], K2 = k[[2]])
@@ -168,8 +161,7 @@ test_that("Can clear index", {
 })
 
 test_that("Cannot set invalid index", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
+  gen <- logistic_gen()
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 10
   mod <- gen$new(pars, 1, n_particles)
@@ -185,8 +177,7 @@ test_that("Cannot set invalid index", {
 })
 
 test_that("End time must be later than initial time", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
+  gen <- logistic_gen()
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 10
   initial_time <- 5
@@ -222,8 +213,7 @@ test_that("cache hits don't compile", {
 })
 
 test_that("Can retrieve statistics", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
+  gen <- logistic_gen()
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
   n_particles <- 5
   mod <- gen$new(pars, 1, n_particles)
@@ -240,9 +230,7 @@ test_that("Can retrieve statistics", {
 })
 
 test_that("Can retrieve statistics", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   n_particles <- 5
   mod <- gen$new(pars, 1, n_particles)
   stats <- mod$statistics()
@@ -258,9 +246,7 @@ test_that("Can retrieve statistics", {
 })
 
 test_that("Can get model size", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   mod <- gen$new(pars, 1, 1)
   expect_equal(mod$n_state_run(), 3)
   expect_equal(mod$n_state_full(), 3)
@@ -273,9 +259,7 @@ test_that("Can get model size", {
 })
 
 test_that("can run to noninteger time", {
-  path <- mode_file("examples/logistic.cpp")
-  gen <- mode(path, quiet = TRUE)
-  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  gen <- logistic_gen()
   mod <- gen$new(pars, 0, 1)
 
   t <- 3.95
@@ -372,4 +356,25 @@ test_that("A null schedule clears stochastic schedule", {
   mod$set_stochastic_schedule(NULL)
   y <- drop(mod$run(10))
   expect_equal(y, rep(1, np))
+})
+
+test_that("Can change the number of threads after initialisation", {
+  gen <- logistic_gen()
+  np <- 5
+  mod <- gen$new(pars, 0, np)
+  expect_equal(withVisible(mod$set_n_threads(2)),
+               list(value = 1L, visible = FALSE))
+  expect_equal(mod$n_threads(), 2L)
+  expect_equal(withVisible(mod$set_n_threads(1)),
+               list(value = 2L, visible = FALSE))
+})
+
+test_that("Can't change to an impossible thread count", {
+  gen <- logistic_gen()
+  np <- 5
+  mod <- gen$new(pars, 0, np)
+  expect_error(mod$set_n_threads(0),
+               "'n_threads' must be positive")
+  expect_error(mod$set_n_threads(-1),
+               "'n_threads' must be positive")
 })
