@@ -331,7 +331,6 @@ test_that("Can validate the stochastic schedule times", {
   expect_equal(y[3, ], rep(1, np))
 })
 
-
 test_that("A null schedule clears stochastic schedule", {
   path <- mode_file("examples/stochastic.cpp")
   gen <- mode(path, quiet = TRUE)
@@ -356,6 +355,25 @@ test_that("A null schedule clears stochastic schedule", {
   mod$set_stochastic_schedule(NULL)
   y <- drop(mod$run(10))
   expect_equal(y, rep(1, np))
+})
+
+test_that("Basic threading test", {
+  path <- mode_file("examples/parallel.cpp")
+  gen <- mode(path, quiet = TRUE)
+
+  obj <- gen$new(list(sd = 1), 0, 10, n_threads = 2L, seed = 1L)
+  obj$set_index(c(hasopenmp = 1L, threadnum = 2L))
+  res <- obj$run(1)
+  expect_true(all(res["hasopenmp",] == 1))
+  expect_equal(sum(res["threadnum", ] == 0), 5)
+  expect_equal(sum(res["threadnum", ] == 1), 5)
+
+  ## And again without parallel
+  obj <- gen$new(list(sd = 1), 0, 10, n_threads = 1L, seed = 1L)
+  obj$set_index(c(hasopenmp = 1L, threadnum = 2L))
+  res <- obj$run(1)
+  expect_true(all(res["hasopenmp",] == 1))
+  expect_equal(sum(res["threadnum", ] == 0), 10)
 })
 
 test_that("Can change the number of threads after initialisation", {
