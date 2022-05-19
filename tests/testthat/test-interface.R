@@ -271,6 +271,14 @@ test_that("can run to noninteger time", {
                tolerance = 1e-7)
 })
 
+test_that("Errors are reported", {
+  gen <- logistic_gen()
+  mod <- gen$new(pars, 0, 2, control = mode_control(max_steps = 1))
+  err <- expect_error(mod$run(5), "2 particles reported errors.")
+  expect_match(
+    err$message,
+    "- 1: too many steps")
+})
 
 test_that("Can run a stochastic model", {
   path <- mode_file("examples/stochastic.cpp")

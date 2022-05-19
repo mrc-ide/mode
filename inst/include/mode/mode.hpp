@@ -29,7 +29,8 @@ public:
       : n_particles_(n_particles),
         n_threads_(n_threads),
         m_(model_type(pars)),
-        rng_(n_particles_, seed, false) {
+        rng_(n_particles_, seed, false),
+        errors_(n_particles){
     auto y = m_.initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m_, time, y, ctl));
@@ -92,8 +93,13 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].solve(end_time, rng_.state(i));
+      try {
+        solver_[i].solve(end_time, rng_.state(i));
+      } catch (std::exception const& e) {
+        errors_.capture(e, i);
+      }
     }
+    errors_.report();
   }
 
   void state_full(std::vector<double> &end_state) {
@@ -208,6 +214,16 @@ public:
     }
   }
 
+  void check_errors() {
+    if (errors_.unresolved()) {
+      throw std::runtime_error("Errors pending; reset required");
+    }
+  }
+
+  void reset_errors() {
+    errors_.reset();
+  }
+
 private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
@@ -215,6 +231,7 @@ private:
   model_type m_;
   std::vector<size_t> index_;
   dust::random::prng<rng_state_type> rng_;
+  dust::utils::openmp_errors errors_;
 };
 
 }

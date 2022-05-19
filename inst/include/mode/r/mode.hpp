@@ -10,6 +10,7 @@
 
 #include <dust/random/random.hpp>
 #include <dust/r/random.hpp>
+#include <dust/utils.hpp>
 
 #include <mode/mode.hpp>
 #include <mode/r/helpers.hpp>
