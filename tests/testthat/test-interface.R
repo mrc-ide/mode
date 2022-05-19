@@ -372,16 +372,23 @@ test_that("Basic threading test", {
   obj <- gen$new(list(sd = 1), 0, 10, n_threads = 2L, seed = 1L)
   obj$set_index(c(hasopenmp = 1L, threadnum = 2L))
   res <- obj$run(1)
-  expect_true(all(res["hasopenmp",] == 1))
-  expect_equal(sum(res["threadnum", ] == 0), 5)
-  expect_equal(sum(res["threadnum", ] == 1), 5)
-
+  expect_true(all(res["hasopenmp", ] == obj$has_openmp()))
+  if (obj$has_openmp()) {
+    expect_equal(sum(res["threadnum", ] == 0), 5)
+    expect_equal(sum(res["threadnum", ] == 1), 5)
+  } else {
+    expect_equal(sum(res["threadnum", ] == -1), 10)
+  }
   ## And again without parallel
   obj <- gen$new(list(sd = 1), 0, 10, n_threads = 1L, seed = 1L)
   obj$set_index(c(hasopenmp = 1L, threadnum = 2L))
   res <- obj$run(1)
-  expect_true(all(res["hasopenmp",] == 1))
-  expect_equal(sum(res["threadnum", ] == 0), 10)
+  expect_true(all(res["hasopenmp", ] == obj$has_openmp()))
+  if (obj$has_openmp()) {
+    expect_equal(sum(res["threadnum", ] == 0), 10)
+  } else {
+    expect_equal(sum(res["threadnum", ] == -1), 10)
+  }
 })
 
 test_that("Can change the number of threads after initialisation", {
@@ -408,5 +415,5 @@ test_that("Can't change to an impossible thread count", {
 test_that("Can get openmp support", {
   gen <- logistic_gen()
   mod <- gen$new(pars, 0, 5)
-  expect_true(mod$has_openmp())
+  expect_equal(mod$has_openmp(), dust::dust_openmp_support()$has_openmp)
 })
