@@ -86,3 +86,12 @@ void mode_{{name}}_reorder(SEXP ptr, SEXP index) {
 void mode_{{name}}_set_n_threads(SEXP ptr, int n_threads) {
   return mode::r::mode_set_n_threads<mode::container<{{class}}>>(ptr, n_threads);
 }
+
+[[cpp11::register]]
+bool mode_{{name}}_has_openmp() {
+#ifdef _OPENMP
+  return true;
+#else
+  return false;
+#endif
+}

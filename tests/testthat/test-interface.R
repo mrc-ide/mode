@@ -396,3 +396,9 @@ test_that("Can't change to an impossible thread count", {
   expect_error(mod$set_n_threads(-1),
                "'n_threads' must be positive")
 })
+
+test_that("Can get openmp support", {
+  gen <- logistic_gen()
+  mod <- gen$new(pars, 0, 5)
+  expect_true(mod$has_openmp())
+})

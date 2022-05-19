@@ -105,6 +105,10 @@
       } else {
         mode_{{name}}_state(private$ptr_, index)
       }
+    },
+
+    has_openmp = function() {
+      mode_{{name}}_has_openmp()
     }
 
   ))
