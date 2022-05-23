@@ -15,3 +15,9 @@ logistic_dde <- function(r, K, times, y0) {
              return_time = FALSE,
              return_by_column = FALSE)
 }
+
+example_logistic <- function() {
+  path <- mode_file("examples/logistic.cpp")
+ list(generator = mode(path, quiet = TRUE),
+      pars = list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100))
+}

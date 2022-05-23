@@ -7,16 +7,19 @@
     info_ = NULL,
     ptr_ = NULL,
     n_particles_ = NULL,
+    n_threads_ = NULL,
     index_ = NULL
   ),
 
   public = list(
-    initialize = function(pars, time, n_particles,
+    initialize = function(pars, time, n_particles, n_threads = 1L,
                           control = NULL, seed = NULL) {
-      res <- mode_{{name}}_alloc(pars, time, n_particles, control, seed)
+      res <- mode_{{name}}_alloc(pars, time, n_particles,
+                                 n_threads, control, seed)
       private$ptr_ <- res[[1]]
       private$pars_ <- pars
       private$n_particles_ <- n_particles
+      private$n_threads_ <- n_threads
     },
 
     name = function() {
@@ -72,6 +75,17 @@
       mode_{{name}}_n_state_full(private$ptr_)
     },
 
+    n_threads = function() {
+      private$n_threads_
+    },
+
+    set_n_threads = function(n_threads) {
+      prev <- private$n_threads_
+      mode_{{name}}_set_n_threads(private$ptr_, n_threads)
+      private$n_threads_ <- n_threads
+      invisible(prev)
+    },
+
     update_state = function(pars = NULL, time = NULL,
                             state = NULL, index = NULL,
                             set_initial_state = NULL, reset_step_size = NULL) {
@@ -91,6 +105,10 @@
       } else {
         mode_{{name}}_state(private$ptr_, index)
       }
+    },
+
+    has_openmp = function() {
+      mode_{{name}}_has_openmp()
     }
 
   ))

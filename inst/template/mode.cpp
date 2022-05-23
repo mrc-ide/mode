@@ -3,10 +3,11 @@
 {{model}}
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time, size_t n_particles,
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time,
+                         size_t n_particles, size_t n_threads,
                          cpp11::sexp control, cpp11::sexp seed) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, control,
-      seed);
+  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, n_threads,
+      control, seed);
 }
 
 [[cpp11::register]]
@@ -79,4 +80,18 @@ size_t mode_{{name}}_n_state_full(SEXP ptr) {
 [[cpp11::register]]
 void mode_{{name}}_reorder(SEXP ptr, SEXP index) {
   return mode::r::mode_reorder<mode::container<{{class}}>>(ptr, index);
+}
+
+[[cpp11::register]]
+void mode_{{name}}_set_n_threads(SEXP ptr, int n_threads) {
+  return mode::r::mode_set_n_threads<mode::container<{{class}}>>(ptr, n_threads);
+}
+
+[[cpp11::register]]
+bool mode_{{name}}_has_openmp() {
+#ifdef _OPENMP
+  return true;
+#else
+  return false;
+#endif
 }
