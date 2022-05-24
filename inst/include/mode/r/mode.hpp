@@ -25,11 +25,12 @@ cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
   auto pars = mode::mode_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_control(control);
+  cpp11::sexp info = mode_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
   container<T> *d = new mode::container<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
   cpp11::external_pointer<container<T>> ptr(d, true, false);
-  return cpp11::writable::list({ptr});
+  return cpp11::writable::list({ptr, info});
 }
 
 template <typename T>
@@ -126,10 +127,10 @@ cpp11::sexp mode_stats(SEXP ptr) {
 }
 
 template <typename T>
-void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
-                       SEXP r_index,
-                       SEXP r_set_initial_state,
-                       SEXP r_reset_step_size) {
+cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
+                              SEXP r_index,
+                              SEXP r_set_initial_state,
+                              SEXP r_reset_step_size) {
   mode::container<T> *obj =
       cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
 
@@ -159,11 +160,14 @@ void mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
                                        index.size(),
                                        n_state_full,
                                        static_cast<int>(obj->n_particles()));
+  cpp11::sexp ret = R_NilValue;
   if (r_pars != R_NilValue) {
     auto pars = mode::mode_pars<T>(r_pars);
     obj->set_pars(pars);
+    ret = mode_info<T>(pars);
   }
   obj->update_state(time, state, index, set_initial_state, reset_step_size);
+  return ret;
 }
 
 template <typename T>

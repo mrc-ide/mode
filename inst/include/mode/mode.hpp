@@ -13,6 +13,11 @@ namespace mode {
 template <typename T>
 typename mode::pars_type<T> mode_pars(cpp11::list pars);
 
+template <typename T>
+cpp11::sexp mode_info(const mode::pars_type<T>& pars) {
+  return R_NilValue;
+}
+
 // TODO: consider a better name here, but using the same name as the
 // namespace does not end well...
 template <typename T>

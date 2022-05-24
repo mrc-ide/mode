@@ -65,4 +65,9 @@ mode::pars_type<logistic> mode_pars<logistic>(cpp11::list pars) {
   return mode::pars_type<logistic>(shared);
 }
 
+template <>
+cpp11::sexp mode_info<logistic>(const mode::pars_type<logistic>& pars) {
+  return cpp11::writable::strings({"N1", "N2"});
+}
+
 }

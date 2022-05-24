@@ -12,6 +12,8 @@ test_that("Can update time", {
   expect_equal(mod$time(), initial_time)
   res2 <- mod$run(5)
   expect_identical(res, res2)
+  ## Did not change pars on update
+  expect_identical(mod$pars(), pars)
 })
 
 test_that("Can only update time for all particles at once", {
