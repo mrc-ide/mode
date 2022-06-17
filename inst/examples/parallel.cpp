@@ -50,7 +50,8 @@ public:
 #endif
   }
 
-  void update_stochastic(double t, std::vector<double>& y,
+  void update_stochastic(double t, const std::vector<double>& y,
+                         std::vector<double>& y_next,
                          rng_state_type& rng_state) {
   }
 

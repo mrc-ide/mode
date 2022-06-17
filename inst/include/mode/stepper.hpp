@@ -157,7 +157,8 @@ public:
   }
 
   void update_stochastic(double t, rng_state_type& rng_state) {
-    m.update_stochastic(t, y, rng_state);
+    m.update_stochastic(t, y, y_next, rng_state);
+    std::copy_n(y_next.begin(), n_var, y.begin()); // y = y_next
     initialise(t); // must recalculate dydt at this point
   }
 
