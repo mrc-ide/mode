@@ -37,8 +37,8 @@ public:
   }
 
   void update_stochastic(double t, const std::vector<double>& y,
-                         std::vector<double>& y_next,
-                         rng_state_type& rng_state) {
+                         rng_state_type& rng_state,
+                         std::vector<double>& y_next) {
     const double r = dust::random::normal<double>(rng_state, 0, shared->v);
     y_next[2] = y[2] * std::exp(r);
   }
