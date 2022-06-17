@@ -157,9 +157,13 @@ public:
   }
 
   void update_stochastic(double t, rng_state_type& rng_state) {
-    std::copy_n(y.begin(), n_var, y_next.begin()); // y_next = y
-    m.update_stochastic(t, y, rng_state, y_next);  // update y -> y_next
-    std::swap(y, y_next);
+    // Slightly odd construction here - we copy y into y_next so that
+    // they both hold the same values, then do the step to update from
+    // y_next to y so that at the end of this step 'y' holds the
+    // current values (and then the derivative calculation in
+    // initialise works as expected).
+    std::copy_n(y.begin(), n_var, y_next.begin()); // from y to y_next
+    m.update_stochastic(t, y_next, rng_state, y);  // from y_next to y
     initialise(t); // must recalculate dydt at this point
   }
 
