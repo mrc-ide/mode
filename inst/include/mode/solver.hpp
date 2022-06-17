@@ -30,6 +30,7 @@ public:
          std::vector<double> y,
          control ctl) : t_(t),
                         ctl_(ctl),
+                        last_error_(0),
                         stepper_(m),
                         n_variables_(m.n_variables()),
                         n_output_(m.n_output()) {

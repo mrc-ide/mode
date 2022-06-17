@@ -153,6 +153,7 @@ public:
   }
 
   void initialise(double t) {
+    std::fill(k1.begin(), k1.end(), 0);
     m.rhs(t, y, k1);
   }
 
