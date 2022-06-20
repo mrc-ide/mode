@@ -36,10 +36,11 @@ public:
               std::vector<double>& output) {
   }
 
-  void update_stochastic(double t, std::vector<double>& y,
-                         rng_state_type& rng_state) {
+  void update_stochastic(double t, const std::vector<double>& y,
+                         rng_state_type& rng_state,
+                         std::vector<double>& y_next) {
     const double r = dust::random::normal<double>(rng_state, 0, shared->v);
-    y[2] *= std::exp(r);
+    y_next[2] = y[2] * std::exp(r);
   }
 
   std::vector<double> initial(double time) {

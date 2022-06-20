@@ -36,8 +36,9 @@ public:
     return ret;
   }
 
-  void update_stochastic(double t, std::vector<double>& y,
-                         rng_state_type& rng_state) {
+  void update_stochastic(double t, const std::vector<double>& y,
+                         rng_state_type& rng_state,
+                         std::vector<double>& y_next) {
   }
 
   size_t n_variables() const {

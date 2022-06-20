@@ -153,11 +153,18 @@ public:
   }
 
   void initialise(double t) {
+    std::fill(k1.begin(), k1.end(), 0);
     m.rhs(t, y, k1);
   }
 
   void update_stochastic(double t, rng_state_type& rng_state) {
-    m.update_stochastic(t, y, rng_state);
+    // Slightly odd construction here - we copy y into y_next so that
+    // they both hold the same values, then do the step to update from
+    // y_next to y so that at the end of this step 'y' holds the
+    // current values (and then the derivative calculation in
+    // initialise works as expected).
+    std::copy_n(y.begin(), n_var, y_next.begin()); // from y to y_next
+    m.update_stochastic(t, y_next, rng_state, y);  // from y_next to y
     initialise(t); // must recalculate dydt at this point
   }
 
