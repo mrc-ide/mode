@@ -18,7 +18,7 @@ returned object can be passed into a mode model on initialisation."><!-- mathjax
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mode</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
       </span>
     </div>
 
@@ -67,27 +67,38 @@ returned object can be passed into a mode model on initialisation.</p>
 <dd><p>Maxmimum number of steps to take. If the
 integration attempts to take more steps that this, it will
 throw an error, stopping the integration.</p></dd>
+
+
 <dt>atol</dt>
 <dd><p>The per-step absolute tolerance.</p></dd>
+
+
 <dt>rtol</dt>
 <dd><p>The per-step relative tolerance.  The total accuracy
 will be less than this.</p></dd>
+
+
 <dt>step_size_min</dt>
 <dd><p>The minimum step size.  The actual minimum
 used will be the largest of the absolute value of this
 <code>step_size_min</code> or <code>.Machine$double.eps</code>. If the
 integration attempts to make a step smaller than this, it will
 throw an error, stopping the integration.</p></dd>
+
+
 <dt>step_size_max</dt>
 <dd><p>The largest step size.  By default there is
 no maximum step size (Inf) so the solver can take as large a
 step as it wants to.  If you have short-lived fluctuations in
 your rhs that the solver may skip over by accident, then specify
 a smaller maximum step size here.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A named list of class "mode_control"</p>
+    
+
+<p>A named list of class "mode_control"</p>
     </div>
 
   </div>
@@ -102,7 +113,7 @@ a smaller maximum step size here.</p></dd>
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>
