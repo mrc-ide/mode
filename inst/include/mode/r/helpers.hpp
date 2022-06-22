@@ -100,8 +100,9 @@ std::vector<double> validate_state(cpp11::sexp r_state,
                                    int n_var,
                                    int n_state_full,
                                    int n_particles) {
+  std::vector<double> ret;
   if (r_state == R_NilValue) {
-    return std::vector<double>(0);
+    return ret;
   }
   cpp11::doubles r_state_data = cpp11::as_cpp<cpp11::doubles>(r_state);
   size_t state_len = r_state_data.size();
@@ -141,6 +142,8 @@ std::vector<double> validate_state(cpp11::sexp r_state,
     std::copy_n(REAL(r_state_data.data()), state_len, ret.begin());
     return ret;
   }
+  // Never get here but keeps compiler happy
+  return ret; // #nocov
 }
 
 inline
