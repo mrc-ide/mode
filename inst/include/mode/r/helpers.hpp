@@ -100,7 +100,6 @@ std::vector<double> validate_state(cpp11::sexp r_state,
                                    int n_var,
                                    int n_state_full,
                                    int n_particles) {
-
   std::vector<double> ret;
   if (r_state == R_NilValue) {
     return ret;
