@@ -134,18 +134,22 @@ public:
     }
   }
 
-  // store future y values in k3, future dydt in k2
-  // these will then be swapped into place (see "swap" below)
+  // store future y values in y_next, future dydt in k2 these will
+  // then be swapped into place (see "swap" below). It's important to
+  // move the y values into y_next and not one of the k* vectors that
+  // hold derivatives in case the model is stochastic and does not
+  // explicitly set a derivative for an equation (in which case they
+  // should be zero).
   void set_state(const stepper<Model>& other) {
     std::copy(other.k1.begin(), other.k1.end(), k2.begin());
-    std::copy(other.y.begin(), other.y.end(), k3.begin());
+    std::copy(other.y.begin(), other.y.end(), y_next.begin());
   }
 
   // to be called after "set_state(other)", see above
   // to populate desired y, k1 values
   void swap() {
     std::swap(k1, k2);
-    std::swap(y, k3);
+    std::swap(y, y_next);
   }
 
   void set_model(Model new_model) {
