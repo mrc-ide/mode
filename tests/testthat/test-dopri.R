@@ -19,3 +19,30 @@ test_that("can integrate logistic", {
   expect_equal(actual[1:2, 1, ], dde, tolerance = 1e-7)
   expect_identical(actual, actual[, rep(1, 5), ])
 })
+
+
+test_that("Can cope with systems that do not set all derivatives", {
+  path <- mode_file("examples/stochastic.cpp")
+  code <- readLines(path)
+  i <- grep("dydt\\[.+\\] = 0;", code)
+  stopifnot(length(i) == 1)
+  tmp <- tempfile(fileext = ".cpp")
+  writeLines(code[-i], tmp)
+  gen <- mode(tmp, quiet = TRUE)
+
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100, v = 1)
+  mod1 <- gen$new(pars, 0, 1)
+  y1 <- vector("list", 3)
+  for (i in seq_along(y1)) {
+    y1[[i]] <- mod1$run(i)
+  }
+
+  mod2 <- gen$new(pars, 0, 1)
+  y2 <- vector("list", 3)
+  for (i in seq_along(y1)) {
+    mod2$reorder(1)
+    y2[[i]] <- mod2$run(i)
+  }
+
+  expect_equal(y2, y1)
+})
