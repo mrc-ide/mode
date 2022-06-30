@@ -70,7 +70,7 @@ cpp11::sexp mode_rng_state(SEXP ptr, bool first_only, bool last_only) {
   }
   const size_t n = first_only ? rng_state_type::size() : state.size();
   const size_t len = sizeof(typename rng_state_type::int_type) * n;
-  cpp11::writable::raws ret(len);
+  cpp11::writable::raws ret(static_cast<R_xlen_t>(len));
   std::memcpy(RAW(ret), state.data(), len);
   return ret;
 }

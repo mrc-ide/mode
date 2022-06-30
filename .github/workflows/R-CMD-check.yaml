@@ -46,8 +46,4 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
-      - name: Setup tmate session
-        if: runner.os == 'macOS'
-        uses: mxschmitt/action-tmate@v3
-
       - uses: r-lib/actions/check-r-package@v1
