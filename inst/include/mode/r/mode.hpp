@@ -54,6 +54,43 @@ double mode_time(SEXP ptr) {
 }
 
 template <typename T>
+cpp11::sexp mode_rng_state(SEXP ptr, bool first_only, bool last_only) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  using rng_state_type = typename T::rng_state_type;
+  const auto state = obj->rng_state();
+  if (first_only && last_only) {
+    cpp11::stop("Only one of 'first_only' or 'last_only' may be TRUE");
+  }
+  if (last_only) {
+    // This is used in dust when we have n + 1 rng streams, with the
+    // last one being the particle filter stream - we don't have that
+    // set up here yet, so just error instead. See dust for
+    // implementation details, and mrc-3360
+    cpp11::stop("'last_only' not supported for mode models");
+  }
+  const size_t n = first_only ? rng_state_type::size() : state.size();
+  const size_t len = sizeof(typename rng_state_type::int_type) * n;
+  cpp11::writable::raws ret(static_cast<R_xlen_t>(len));
+  std::memcpy(RAW(ret), state.data(), len);
+  return ret;
+}
+
+template <typename T>
+void mode_set_rng_state(SEXP ptr, cpp11::raws rng_state) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  using int_type = typename T::rng_state_type::int_type;
+  auto prev_state = obj->rng_state();
+  size_t len = prev_state.size() * sizeof(int_type);
+  if ((size_t)rng_state.size() != len) {
+    cpp11::stop("'rng_state' must be a raw vector of length %d (but was %d)",
+                len, rng_state.size());
+  }
+  std::vector<int_type> state(prev_state.size());
+  std::memcpy(state.data(), RAW(rng_state), len);
+  obj->set_rng_state(state);
+}
+
+template <typename T>
 void mode_set_index(SEXP ptr, cpp11::sexp r_index) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   if (r_index == R_NilValue) {
