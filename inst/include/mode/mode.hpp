@@ -229,6 +229,14 @@ public:
     errors_.reset();
   }
 
+  std::vector<typename rng_state_type::int_type> rng_state() {
+    return rng_.export_state();
+  }
+
+  void set_rng_state(const std::vector<typename rng_state_type::int_type>& rng_state) {
+    rng_.import_state(rng_state);
+  }
+
 private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;

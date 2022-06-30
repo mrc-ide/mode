@@ -402,3 +402,36 @@ test_that("Can get openmp support", {
   mod <- ex$generator$new(ex$pars, 0, 5)
   expect_equal(mod$has_openmp(), dust::dust_openmp_support()$has_openmp)
 })
+
+
+test_that("can get rng state", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.1)
+  mod <- gen$new(pars, 0, 10, seed = 1L)
+  rng <- mod$rng_state()
+  expect_type(rng, "raw")
+  expect_identical(rng, dust::dust_rng$new(1, 10)$state())
+  expect_identical(mod$rng_state(first_only = TRUE),
+                   rng[seq_len(32)])
+  expect_error(
+    mod$rng_state(first_only = TRUE, last_only = TRUE),
+    "Only one of 'first_only' or 'last_only' may be TRUE")
+  expect_error(
+    mod$rng_state(last_only = TRUE),
+    "'last_only' not supported for mode models")
+})
+
+
+test_that("can set rng state into model", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.1)
+  mod1 <- gen$new(pars, 0, 10, seed = 1L)
+  mod2 <- gen$new(pars, 0, 10, seed = 2L)
+  mod1$set_stochastic_schedule(0:10)
+  mod2$set_stochastic_schedule(0:10)
+  mod1$set_rng_state(mod2$rng_state())
+  y1 <- mod1$run(11)
+  y2 <- mod2$run(11)
+  expect_identical(y1, y2)
+  expect_identical(mod1$rng_state(), mod2$rng_state())
+})

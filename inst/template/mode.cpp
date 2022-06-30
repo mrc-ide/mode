@@ -21,6 +21,17 @@ double mode_{{name}}_time(SEXP ptr) {
 }
 
 [[cpp11::register]]
+cpp11::sexp mode_{{name}}_rng_state(SEXP ptr, bool first_only, bool last_only) {
+  return mode::r::mode_rng_state<mode::container<{{class}}>>(ptr, first_only, last_only);
+}
+
+[[cpp11::register]]
+cpp11::sexp mode_{{name}}_set_rng_state(SEXP ptr, cpp11::raws rng_state) {
+  mode::r::mode_set_rng_state<mode::container<{{class}}>>(ptr, rng_state);
+  return R_NilValue;
+}
+
+[[cpp11::register]]
 cpp11::sexp mode_{{name}}_run(SEXP ptr, double end_time) {
   return mode::r::mode_run<mode::container<{{class}}>>(ptr, end_time);
 }
