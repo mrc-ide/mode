@@ -151,11 +151,18 @@ std::vector<double> validate_time(cpp11::sexp r_time) {
   if (r_time == R_NilValue) {
     return std::vector<double>(0);
   }
-  cpp11::doubles time = cpp11::as_cpp<cpp11::doubles>(r_time);
-  if (time.size() != 1) {
+  // See similar issues in as_integer, where we need to drop down to
+  // the C macros.
+  if (LENGTH(r_time) != 1) {
     cpp11::stop("Expected 'time' to be a scalar value");
   }
-  return std::vector<double> {time[0]};
+  double time;
+  if (TYPEOF(r_time) == INTSXP) {
+    time = INTEGER(r_time)[0];
+  } else {
+    time = cpp11::as_cpp<cpp11::doubles>(r_time)[0];
+  }
+  return std::vector<double> {time};
 }
 
 inline
