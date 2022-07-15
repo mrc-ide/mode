@@ -9,7 +9,8 @@ mode_control(
   atol = NULL,
   rtol = NULL,
   step_size_min = NULL,
-  step_size_max = NULL
+  step_size_max = NULL,
+  debug_record_step_times = NULL
 )
 }
 \arguments{
@@ -33,6 +34,10 @@ no maximum step size (Inf) so the solver can take as large a
 step as it wants to.  If you have short-lived fluctuations in
 your rhs that the solver may skip over by accident, then specify
 a smaller maximum step size here.}
+
+\item{debug_record_step_times}{Logical, indicating if we should record
+the steps taken. This information will be available as part of
+the \code{statistics()} output}
 }
 \value{
 A named list of class "mode_control"
