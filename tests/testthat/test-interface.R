@@ -469,3 +469,42 @@ test_that("Can get information about steps", {
   ## But every point in the stochastic schedule is required:
   all(vapply(steps, function(s) all(schedule[-1] %in% s), TRUE))
 })
+
+
+test_that("information about steps survives shuffle", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.5)
+  n_particles <- 5L
+  control <- mode_control(debug_record_step_times = TRUE)
+
+  ## First, run through in one go:
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+  y1 <- mod$run(10)
+  stats1 <- mod$statistics()
+  steps1 <- attr(stats1, "step_times")
+
+  ## At reverse, things look ok
+  reverse <- rev(seq_len(n_particles))
+  mod$reorder(reverse)
+  expect_equal(mod$state(), y1[, reverse])
+  expect_equal(mod$statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
+
+  ## Then again, but shuffle at half time
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+  mod$run(5) # must be part of the stochastic updates
+  mod$reorder(reverse)
+  ## Reverse the rng state too
+  mod$set_rng_state(c(matrix(mod$rng_state(), ncol = n_particles)[, reverse]))
+  y2 <- mod$run(10)
+  stats2 <- mod$statistics()
+  steps2 <- attr(stats2, "step_times")
+
+  expect_equal(mod$state(), y1[, reverse])
+  expect_equal(mod$statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
+})
