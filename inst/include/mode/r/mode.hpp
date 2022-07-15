@@ -158,9 +158,20 @@ cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
 template <typename T>
 cpp11::sexp mode_stats(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  std::vector<size_t> dat(3 * obj->n_particles());
+  const auto n_particles = obj->n_particles();
+  std::vector<size_t> dat(3 * n_particles);
   obj->statistics(dat);
-  return mode::r::stats_array(dat, obj->n_particles());
+  auto ret = mode::r::stats_array(dat, n_particles);
+  auto step_times = obj->debug_step_times();
+  if (obj->ctl().debug_record_step_times) {
+    auto step_times = obj->debug_step_times();
+    cpp11::writable::list r_step_times(step_times.size());
+    for (size_t i = 0; i < n_particles; ++i) {
+      r_step_times[i] = cpp11::as_sexp(step_times[i]);
+    }
+    ret.attr("step_times") = r_step_times;
+  }
+  return ret;
 }
 
 template <typename T>

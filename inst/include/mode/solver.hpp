@@ -81,15 +81,16 @@ public:
       if (err <= 1) {
         success = true;
         stats_.n_steps_accepted++;
-
         stepper_.step_complete(t_, h);
-
         double fac = fac11 / std::pow(fac_old, ctl_.beta);
         fac = clamp(fac / ctl_.factor_safe,
                     facc2, facc1);
         const double h_new = h / fac;
 
         t_ += h;
+        if (ctl_.debug_record_step_times) {
+          stats_.step_times.push_back(t_);
+        }
         if (reject) {
           h_ = std::min(h_new, h);
         } else {
@@ -208,6 +209,10 @@ public:
     all_stats[1] = stats_.n_steps_accepted;
     all_stats[2] = stats_.n_steps_rejected;
     return all_stats + 3;
+  }
+
+  std::vector<double> debug_step_times() {
+    return stats_.step_times;
   }
 };
 }

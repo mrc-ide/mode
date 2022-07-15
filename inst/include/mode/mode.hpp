@@ -211,12 +211,24 @@ public:
 
   void statistics(std::vector<size_t> &all_stats) {
     auto it = all_stats.begin();
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static) num_threads(n_threads_)
-#endif
+    // this is hard to make parallel safe without doing
+    //
+    // solver_i[i].statistics(it + i * 3);
+    //
+    // which requires knowing that we always have three statistics
+    // (though we do rely on this in r/mode.hpp::mode_stats)
     for (size_t i = 0; i < n_particles_; ++i) {
       it = solver_[i].statistics(it);
     }
+  }
+
+  std::vector<std::vector<double>> debug_step_times() {
+    std::vector<std::vector<double>> ret(n_particles_);
+    // This could be in parallel safely
+    for (size_t i = 0; i < n_particles_; ++i) {
+      ret[i] = solver_[i].debug_step_times();
+    }
+    return ret;
   }
 
   void check_errors() {

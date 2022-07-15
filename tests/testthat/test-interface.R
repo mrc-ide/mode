@@ -212,6 +212,8 @@ test_that("Can retrieve statistics", {
   stats <- mod$statistics()
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
+
+  expect_null(attr(stats, "step_times")) # see below
 })
 
 test_that("Can retrieve statistics", {
@@ -434,4 +436,36 @@ test_that("can set rng state into model", {
   y2 <- mod2$run(11)
   expect_identical(y1, y2)
   expect_identical(mod1$rng_state(), mod2$rng_state())
+})
+
+
+test_that("Can get information about steps", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.5)
+  n_particles <- 5L
+  control <- mode_control(debug_record_step_times = TRUE)
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  stats <- mod$statistics()
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+
+  ## As usual:
+  expect_equal(dim(stats), c(3, n_particles))
+  expect_equal(row.names(stats),
+               c("n_steps", "n_steps_accepted", "n_steps_rejected"))
+  expect_s3_class(stats, "mode_statistics")
+  expect_true(all(stats == 0))
+
+  ## But we also have this:
+  expect_equal(attr(stats, "step_times"), rep(list(numeric(0)), n_particles))
+
+  mod$run(10)
+
+  stats <- mod$statistics()
+  steps <- attr(stats, "step_times")
+  expect_equal(lengths(steps), stats["n_steps_accepted", ])
+  ## Only end points of the steps are included:
+  expect_false(0 %in% steps)
+  ## But every point in the stochastic schedule is required:
+  all(vapply(steps, function(s) all(schedule[-1] %in% s), TRUE))
 })
