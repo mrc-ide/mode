@@ -5,7 +5,7 @@ struct control {
   // TODO: I've had to un-const these for a bit
   size_t max_steps = 10000;
   double atol = 1e-6;
-  double rtol = 1e-8;
+  double rtol = 1e-6;
   double step_size_min = 1e-8;
   double step_size_max = std::numeric_limits<double>::infinity();
   double factor_safe = 0.9;

@@ -8,7 +8,8 @@ test_that("Can compile a simple model", {
   expect_equal(mod$info(), c("N1", "N2"))
   expect_equal(mod$n_particles(), n_particles)
   expected_control <- mode_control(max_steps = 10000, rtol = 1e-6, atol = 1e-6,
-                          step_size_min = 1e-8, step_size_max = Inf)
+                                   step_size_min = 1e-8, step_size_max = Inf,
+                                   debug_record_step_times = FALSE)
   expect_equal(mod$control(), expected_control)
 })
 
@@ -16,7 +17,8 @@ test_that("Can compile a simple model with control", {
   ex <- example_logistic()
   n_particles <- 10
   control <- mode_control(max_steps = 10, rtol = 0.01, atol = 0.02,
-                          step_size_min = 0.1, step_size_max = 1)
+                          step_size_min = 0.1, step_size_max = 1,
+                          debug_record_step_times = FALSE)
   mod <- ex$generator$new(ex$pars, pi, n_particles, control = control)
   ctl <- mod$control()
   expect_s3_class(control, "mode_control")
