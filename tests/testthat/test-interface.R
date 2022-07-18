@@ -79,6 +79,14 @@ test_that("Can get arbitrary partial state", {
   expect_identical(state, res)
 })
 
+test_that("Error if initialised with no particles", {
+  ex <- example_logistic()
+  n_particles <- 10
+  expect_error(ex$generator$new(ex$pars, 0, 0),
+               "'n_particles' must be positive (was given 0)",
+               fixed = TRUE)
+})
+
 test_that("Error if partial state index is invalid", {
   ex <- example_logistic()
   n_particles <- 10

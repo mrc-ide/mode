@@ -27,6 +27,7 @@ cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
   auto ctl = mode::r::validate_control(control);
   cpp11::sexp info = mode_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
+  mode::r::validate_positive(n_particles, "n_particles");
   container<T> *d = new mode::container<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
   cpp11::external_pointer<container<T>> ptr(d, true, false);
