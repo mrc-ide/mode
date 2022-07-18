@@ -18,7 +18,7 @@ returned object can be passed into a mode model on initialisation."><!-- mathjax
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">mode</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.5</span>
       </span>
     </div>
 
@@ -57,7 +57,8 @@ returned object can be passed into a mode model on initialisation.</p>
 <span>  atol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  rtol <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  step_size_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  step_size_max <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  step_size_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  debug_record_step_times <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,6 +93,12 @@ no maximum step size (Inf) so the solver can take as large a
 step as it wants to.  If you have short-lived fluctuations in
 your rhs that the solver may skip over by accident, then specify
 a smaller maximum step size here.</p></dd>
+
+
+<dt>debug_record_step_times</dt>
+<dd><p>Logical, indicating if we should record
+the steps taken. This information will be available as part of
+the <code>statistics()</code> output</p></dd>
 
 </dl></div>
     <div id="value">
