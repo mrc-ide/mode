@@ -8,7 +8,8 @@ test_that("Can compile a simple model", {
   expect_equal(mod$info(), c("N1", "N2"))
   expect_equal(mod$n_particles(), n_particles)
   expected_control <- mode_control(max_steps = 10000, rtol = 1e-6, atol = 1e-6,
-                          step_size_min = 1e-8, step_size_max = Inf)
+                                   step_size_min = 1e-8, step_size_max = Inf,
+                                   debug_record_step_times = FALSE)
   expect_equal(mod$control(), expected_control)
 })
 
@@ -16,7 +17,8 @@ test_that("Can compile a simple model with control", {
   ex <- example_logistic()
   n_particles <- 10
   control <- mode_control(max_steps = 10, rtol = 0.01, atol = 0.02,
-                          step_size_min = 0.1, step_size_max = 1)
+                          step_size_min = 0.1, step_size_max = 1,
+                          debug_record_step_times = FALSE)
   mod <- ex$generator$new(ex$pars, pi, n_particles, control = control)
   ctl <- mod$control()
   expect_s3_class(control, "mode_control")
@@ -220,6 +222,8 @@ test_that("Can retrieve statistics", {
   stats <- mod$statistics()
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
+
+  expect_null(attr(stats, "step_times")) # see below
 })
 
 test_that("Can retrieve statistics", {
@@ -442,4 +446,75 @@ test_that("can set rng state into model", {
   y2 <- mod2$run(11)
   expect_identical(y1, y2)
   expect_identical(mod1$rng_state(), mod2$rng_state())
+})
+
+
+test_that("Can get information about steps", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.5)
+  n_particles <- 5L
+  control <- mode_control(debug_record_step_times = TRUE)
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  stats <- mod$statistics()
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+
+  ## As usual:
+  expect_equal(dim(stats), c(3, n_particles))
+  expect_equal(row.names(stats),
+               c("n_steps", "n_steps_accepted", "n_steps_rejected"))
+  expect_s3_class(stats, "mode_statistics")
+  expect_true(all(stats == 0))
+
+  ## But we also have this:
+  expect_equal(attr(stats, "step_times"), rep(list(numeric(0)), n_particles))
+
+  mod$run(10)
+
+  stats <- mod$statistics()
+  steps <- attr(stats, "step_times")
+  expect_equal(lengths(steps), stats["n_steps_accepted", ])
+  ## Only end points of the steps are included:
+  expect_false(0 %in% steps)
+  ## But every point in the stochastic schedule is required:
+  all(vapply(steps, function(s) all(schedule[-1] %in% s), TRUE))
+})
+
+
+test_that("information about steps survives shuffle", {
+  gen <- mode(mode_file("examples/stochastic.cpp"), quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.5)
+  n_particles <- 5L
+  control <- mode_control(debug_record_step_times = TRUE)
+
+  ## First, run through in one go:
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+  y1 <- mod$run(10)
+  stats1 <- mod$statistics()
+  steps1 <- attr(stats1, "step_times")
+
+  ## At reverse, things look ok
+  reverse <- rev(seq_len(n_particles))
+  mod$reorder(reverse)
+  expect_equal(mod$state(), y1[, reverse])
+  expect_equal(mod$statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
+
+  ## Then again, but shuffle at half time
+  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  schedule <- seq(0, 5, length.out = 11)
+  mod$set_stochastic_schedule(schedule)
+  mod$run(5) # must be part of the stochastic updates
+  mod$reorder(reverse)
+  ## Reverse the rng state too
+  mod$set_rng_state(c(matrix(mod$rng_state(), ncol = n_particles)[, reverse]))
+  y2 <- mod$run(10)
+  stats2 <- mod$statistics()
+  steps2 <- attr(stats2, "step_times")
+
+  expect_equal(mod$state(), y1[, reverse])
+  expect_equal(mod$statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
 })

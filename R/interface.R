@@ -66,12 +66,18 @@ mode <- function(filename, quiet = FALSE, workdir = NULL, skip_cache = FALSE) {
 ##'   your rhs that the solver may skip over by accident, then specify
 ##'   a smaller maximum step size here.
 ##'
+##' @param debug_record_step_times Logical, indicating if we should record
+##'   the steps taken. This information will be available as part of
+##'   the `statistics()` output
+##'
 ##' @export
 ##' @return A named list of class "mode_control"
 mode_control <- function(max_steps = NULL, atol = NULL, rtol = NULL,
-                         step_size_min = NULL, step_size_max = NULL) {
+                         step_size_min = NULL, step_size_max = NULL,
+                         debug_record_step_times = NULL) {
   ctl <- list(max_steps = max_steps, atol = atol, rtol = rtol,
-              step_size_min = step_size_min, step_size_max = step_size_max)
+              step_size_min = step_size_min, step_size_max = step_size_max,
+              debug_record_step_times = debug_record_step_times)
   class(ctl) <- "mode_control"
   ctl
 }

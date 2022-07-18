@@ -3,6 +3,7 @@
 #include <cpp11/list.hpp>
 #include <cpp11/integers.hpp>
 #include <cpp11/doubles.hpp>
+#include <cpp11/logicals.hpp>
 
 namespace mode {
 namespace r {
@@ -221,6 +222,19 @@ double validate_double(SEXP r_value, double default_value, const char * name) {
 }
 
 inline
+bool validate_logical(SEXP r_value, bool default_value, const char * name) {
+  bool final_value = default_value;
+  if (r_value == R_NilValue) {
+    return final_value;
+  }
+  cpp11::logicals values = cpp11::as_cpp<cpp11::logicals>(r_value);
+  if (values.size() != 1) {
+    cpp11::stop("Expected '%s' to be a scalar value", name);
+  }
+  return values[0];
+}
+
+inline
 mode::control validate_control(cpp11::sexp r_control) {
   if (r_control == R_NilValue) {
     return mode::control();
@@ -237,8 +251,10 @@ mode::control validate_control(cpp11::sexp r_control) {
         mode::r::validate_double(control[4],
                                  std::numeric_limits<double>::infinity(),
                                  "step_size_max");
+    auto debug_record_step_times =
+        mode::r::validate_logical(control[5], false, "debug_record_step_times");
     return mode::control(max_steps, atol, rtol, step_size_min,
-                         step_size_max);
+                         step_size_max, debug_record_step_times);
   }
 }
 
@@ -249,7 +265,8 @@ cpp11::sexp control(const mode::control ctl) {
                                     "atol"_nm = ctl.atol,
                                     "rtol"_nm = ctl.rtol,
                                     "step_size_min"_nm = ctl.step_size_min,
-                                    "step_size_max"_nm = ctl.step_size_max});
+                                    "step_size_max"_nm = ctl.step_size_max,
+                                    "debug_record_step_times"_nm = ctl.debug_record_step_times});
 
   ret.attr("class") = "mode_control";
   return ret;
