@@ -429,3 +429,21 @@ test_that("Can reorder particles mid-flight", {
   expect_identical(y3, y1[, 5:1])
   expect_true(all(unclass(s3) == s3[, 5:1]))
 })
+
+test_that("Can update time with integer value", {
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+  n_particles <- 10
+  initial_time <- 1
+  mod <- gen$new(pars, initial_time, n_particles)
+  expect_equal(mod$time(), initial_time)
+  res <- mod$run(5)
+  expect_equal(mod$time(), 5)
+  mod$update_state(time = as.integer(initial_time))
+  expect_equal(mod$time(), initial_time)
+  res2 <- mod$run(5)
+  expect_identical(res, res2)
+  ## Did not change pars on update
+  expect_identical(mod$pars(), pars)
+})
