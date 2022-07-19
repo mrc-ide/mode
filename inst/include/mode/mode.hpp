@@ -113,7 +113,7 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      it = solver_[i].state(it);
+      solver_[i].state(it + i * n_state_full());
     }
   }
 
@@ -123,7 +123,7 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      it = solver_[i].state(index_, it);
+      solver_[i].state(index_, it + i * n_state_run());
     }
   }
 
@@ -134,7 +134,7 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      it = solver_[i].state(index, it);
+      solver_[i].state(index, it + i * index.size());
     }
   }
 
@@ -155,12 +155,13 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
       for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_state(t, it, index);
+        auto start = it;
+        if (individual) {
+            start = it + i * n;
+        }
+        solver_[i].set_state(t, start, index);
         solver_[i].set_time(t, reset_step_size);
         solver_[i].initialise(t);
-        if (individual) {
-          it += n;
-        }
       }
     } else if (set_initial_state) {
       auto y = m_.initial(t);

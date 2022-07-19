@@ -388,6 +388,51 @@ test_that("Basic threading test", {
   }
 })
 
+test_that("Can get state when multi-threaded", {
+  ex <- example_logistic()
+  np <- 5
+  mod_threaded <- ex$generator$new(ex$pars, 0, np, n_threads = 4)
+  mod_threaded$set_index(c(1, 2, 3))
+  res_threaded <- mod_threaded$run(1)
+  state_threaded <- mod_threaded$state()
+  partial_state_threaded <- mod_threaded$state(1L)
+
+  mod_single <- ex$generator$new(ex$pars, 0, np)
+  mod_single$set_index(c(1, 2, 3))
+  res_single <- mod_single$run(1)
+  state_single <- mod_single$state()
+  partial_state_single <- mod_single$state(1L)
+
+  expect_equal(res_threaded, res_single)
+  expect_equal(state_threaded, state_single)
+  expect_equal(partial_state_threaded, partial_state_single)
+})
+
+test_that("Can update state when multi-threaded", {
+  ex <- example_logistic()
+  np <- 3
+  mod <- ex$generator$new(ex$pars, 0, np, n_threads = 4)
+  mod$run(3)
+
+  new_pars <- list(r1 = 0.5, r2 = 0.7, K1 = 200, K2 = 200)
+
+  # update all particles to have the same state
+  mod$update_state(pars = new_pars, time = 2,
+                            state = c(1, 2))
+
+  expect_equal(mod$state(), matrix(rep(1:3, np), nrow = 3))
+  expect_equal(mod$time(), 2)
+  expect_equal(mod$pars(), new_pars)
+
+  # update with different state for each particle
+  new_state <- matrix(as.double(1:6), nrow = 2)
+  expected_state <- matrix(as.double(1:6), nrow = 2)
+
+  mod$update_state(pars = new_pars, time = 2,
+                            state = new_state)
+  expect_equal(mod$state(), matrix(c(1, 2, 3, 3, 4, 7, 5, 6, 11), nrow = 3))
+})
+
 test_that("Can change the number of threads after initialisation", {
   ex <- example_logistic()
   np <- 5
