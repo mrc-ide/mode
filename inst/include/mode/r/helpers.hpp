@@ -236,23 +236,31 @@ bool validate_logical(SEXP r_value, bool default_value, const char * name) {
 
 inline
 mode::control validate_control(cpp11::sexp r_control) {
+  const auto defaults = mode::control();
   if (r_control == R_NilValue) {
-    return mode::control();
+    return defaults;
   }
   else {
     auto control = cpp11::as_cpp<cpp11::list>(r_control);
-    auto max_steps = mode::r::validate_int(control[0], 1000, "max_steps");
-    auto atol = mode::r::validate_double(control[1], 1e-6, "atol");
-    auto rtol = mode::r::validate_double(control[2], 1e-6, "rtol");
-    auto step_size_min = mode::r::validate_double(control[3],
-                                                  1e-8,
+    auto max_steps = mode::r::validate_int(control["max_steps"],
+                                           defaults.max_steps,
+                                           "max_steps");
+    auto atol = mode::r::validate_double(control["atol"],
+                                         defaults.atol,
+                                         "atol");
+    auto rtol = mode::r::validate_double(control["rtol"],
+                                         defaults.rtol,
+                                         "rtol");
+    auto step_size_min = mode::r::validate_double(control["step_size_min"],
+                                                  defaults.step_size_min,
                                                   "step_size_min");
-    auto step_size_max =
-        mode::r::validate_double(control[4],
-                                 std::numeric_limits<double>::infinity(),
-                                 "step_size_max");
+    auto step_size_max = mode::r::validate_double(control["step_size_max"],
+                                                  defaults.step_size_max,
+                                                  "step_size_max");
     auto debug_record_step_times =
-        mode::r::validate_logical(control[5], false, "debug_record_step_times");
+        mode::r::validate_logical(control["debug_record_step_times"],
+                                  defaults.debug_record_step_times,
+                                  "debug_record_step_times");
     return mode::control(max_steps, atol, rtol, step_size_min,
                          step_size_max, debug_record_step_times);
   }

@@ -28,17 +28,28 @@ test_that("Can compile a simple model with control", {
 
 test_that("Can compile a simple model with partial control", {
   ex <- example_logistic()
-  n_particles <- 10
+  generate_control <- function(control) {
+    ex$generator$new(ex$pars, pi, 10, control = control)$control()
+  }
+
   control <- mode_control(max_steps = 10, atol = 0.2)
-  mod <- ex$generator$new(ex$pars, pi, n_particles, control = control)
-  expect_s3_class(control, "mode_control")
-  ctl <- mod$control()
+  ctl <- generate_control(control)
   expect_s3_class(ctl, "mode_control")
   expect_equal(ctl$max_steps, 10)
   expect_equal(ctl$atol, 0.2)
   expect_equal(ctl$rtol, 1e-6)
   expect_equal(ctl$step_size_min, 1e-8)
   expect_equal(ctl$step_size_max, Inf)
+  expect_false(ctl$debug_record_step_times)
+
+  default <- generate_control(NULL)
+  expect_equal(ctl, modifyList(default, list(max_steps = 10, atol = 0.2)))
+
+  ## A couple more
+  expect_equal(f(mode_control(atol = 0.2)),
+               modifyList(default, list(atol = 0.2)))
+  expect_equal(f(mode_control(debug_record_step_times = FALSE)),
+               modifyList(default, list(debug_record_step_times = FALSE)))
 })
 
 test_that("Returns full state from run when no index set", {
