@@ -181,8 +181,7 @@ public:
     return y;
   }
 
-  std::vector<double>::iterator
-  state(double t,
+  void state(double t,
         const std::vector<size_t>& index,
         std::vector<double>::iterator end_state) {
     auto n = index.size();
@@ -199,11 +198,9 @@ public:
         *end_state = output[j - n_var];
       }
     }
-    return end_state;
   }
 
-  std::vector<double>::iterator
-  state(double t,
+  void state(double t,
         std::vector<double>::iterator end_state) {
     auto n = n_var + n_out;
     bool have_run_output = false;
@@ -218,7 +215,6 @@ public:
         *end_state = output[i - n_var];
       }
     }
-    return end_state;
   }
 
   double init_step_size(double t, control ctl) {

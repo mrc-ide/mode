@@ -192,15 +192,13 @@ public:
     return n_variables_;
   }
 
-  std::vector<double>::iterator
-  state(const std::vector<size_t>& index,
+  void state(const std::vector<size_t>& index,
         std::vector<double>::iterator end_state) {
-    return stepper_.state(t_, index, end_state);
+    stepper_.state(t_, index, end_state);
   }
 
-  std::vector<double>::iterator
-  state(std::vector<double>::iterator end_state) {
-    return stepper_.state(t_, end_state);
+  void state(std::vector<double>::iterator end_state) {
+    stepper_.state(t_, end_state);
   }
 
   std::vector<size_t>::iterator
