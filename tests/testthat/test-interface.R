@@ -46,9 +46,9 @@ test_that("Can compile a simple model with partial control", {
   expect_equal(ctl, modifyList(default, list(max_steps = 10, atol = 0.2)))
 
   ## A couple more
-  expect_equal(f(mode_control(atol = 0.2)),
+  expect_equal(generate_control(mode_control(atol = 0.2)),
                modifyList(default, list(atol = 0.2)))
-  expect_equal(f(mode_control(debug_record_step_times = FALSE)),
+  expect_equal(generate_control(mode_control(debug_record_step_times = FALSE)),
                modifyList(default, list(debug_record_step_times = FALSE)))
 })
 
