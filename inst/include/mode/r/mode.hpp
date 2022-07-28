@@ -137,6 +137,31 @@ cpp11::sexp mode_run(SEXP ptr, double end_time) {
 }
 
 template <typename T>
+cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_end_time) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  obj->check_errors();
+  const auto end_time = as_vector_double(r_end_time, "end_time");
+  const auto n_time = end_time.size();
+  if (n_time == 0) {
+    cpp11::stop("'end_time' must have at least one element");
+  }
+  if (end_time[0] < obj->time()) {
+    cpp11::stop("'end_time[1]' must be at least %f", obj->time());
+  }
+  for (size_t i = 1; i < n_time; ++i) {
+    if (end_time[i] < end_time[i - 1]) {
+      cpp11::stop("'end_time' must be non-decreasing (error on element %d)",
+                  i + 1);
+    }
+  }
+
+  auto dat = obj->simulate(end_time);
+
+  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
+                              n_time);
+}
+
+template <typename T>
 cpp11::sexp mode_state_full(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   std::vector<double> dat(obj->n_state_full() * obj->n_particles());

@@ -574,3 +574,55 @@ test_that("information about steps survives shuffle", {
   expect_equal(mod$statistics()[, ], stats1[, reverse])
   expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
 })
+
+
+test_that("can simulate a time series", {
+  ex <- example_logistic()
+  n_particles <- 5L
+  mod <- ex$generator$new(ex$pars, 0, n_particles)
+  t <- as.numeric(0:10)
+  m <- mod$simulate(t)
+  expect_equal(dim(m), c(3, n_particles, length(t)))
+
+  cmp <- ex$generator$new(ex$pars, 0, n_particles)
+  for (i in seq_along(t)) {
+    expect_identical(m[, , i], cmp$run(t[i]))
+  }
+})
+
+
+test_that("can set an index and reflect that in simulate output", {
+  ex <- example_logistic()
+  n_particles <- 5L
+  mod <- ex$generator$new(ex$pars, 0, n_particles)
+  mod$set_index(c(n2 = 2, output = 3))
+  t <- as.numeric(0:10)
+  m <- mod$simulate(t)
+  expect_equal(rownames(m), c("n2", "output"))
+  expect_equal(dim(m), c(2, n_particles, length(t)))
+
+  ## Same as the full output:
+  mod$update_state(time = 0, set_initial_state = TRUE)
+  mod$set_index(NULL)
+  expect_identical(unname(m), mod$simulate(t)[2:3, , ])
+})
+
+
+test_that("check that simulate times are reasonable", {
+  ex <- example_logistic()
+  n_particles <- 5L
+  mod <- ex$generator$new(ex$pars, 0, n_particles)
+
+  expect_error(
+    mod$simulate(seq(-5, 5, 1)),
+    "'end_time[1]' must be at least 0", fixed = TRUE)
+  expect_error(
+    mod$simulate(numeric(0)),
+    "'end_time' must have at least one element", fixed = TRUE)
+  expect_error(
+    mod$simulate(c(0, 1, 2, 3, 2, 5)),
+    "'end_time' must be non-decreasing (error on element 5)", fixed = TRUE)
+  expect_error(
+    mod$simulate(NULL),
+    "Expected a numeric vector for 'end_time'", fixed = TRUE)
+})
