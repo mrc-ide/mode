@@ -77,6 +77,12 @@
       m
     },
 
+    simulate = function(end_time) {
+      m <- mode_{{name}}_simulate(private$ptr_, end_time)
+      rownames(m) <- names(private$index_)
+      m
+    },
+
     statistics = function() {
       mode_{{name}}_stats(private$ptr_)
     },
