@@ -86,7 +86,7 @@ compile_mode <- function(filename, config, workdir, quiet) {
   path <- generate_mode(filename, config, workdir)
   pkgbuild::compile_dll(path, compile_attributes = TRUE,
                         quiet = quiet, debug = FALSE)
-  load_temporary_package(path, config$base, quiet)
+  dust:::load_temporary_package(path, config$base, quiet)
 }
 
 
