@@ -626,3 +626,32 @@ test_that("check that simulate times are reasonable", {
     mod$simulate(NULL),
     "Expected a numeric vector for 'end_time'", fixed = TRUE)
 })
+
+
+test_that("Can save a model and reload it after repair", {
+  skip_if_not_installed("callr")
+  path <- mode_file("examples/logistic.cpp")
+  gen <- mode(path, quiet = TRUE)
+
+  tmp_rds <- tempfile()
+  suppressWarnings(saveRDS(gen, tmp_rds))
+
+  pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 100)
+
+  ## Fails to load because the package environment is not present, and
+  ## so can't find the alloc function
+  expect_error(callr::r(function(path, pars) {
+    gen <- readRDS(path)
+    gen$new(pars, 0, 1, seed = 1)$run(10)
+  }, list(tmp_rds, pars)), "mode_logistic_alloc")
+
+  ## If we repair the environment it works fine though
+  res <- callr::r(function(path, pars) {
+    gen <- readRDS(path)
+    dust::dust_repair_environment(gen)
+    gen$new(pars, 0, 1, seed = 1)$run(10)
+  }, list(tmp_rds, pars))
+
+  cmp <- gen$new(pars, 0, 1, seed = 1)$run(10)
+  expect_equal(res, cmp)
+})

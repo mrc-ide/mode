@@ -8,7 +8,8 @@
     ptr_ = NULL,
     n_particles_ = NULL,
     n_threads_ = NULL,
-    index_ = NULL
+    index_ = NULL,
+    reload_ = {{reload}}
   ),
 
   public = list(
@@ -135,3 +136,4 @@
     }
 
   ))
+class({{name}}) <- c("mode_generator", class({{name}}))
