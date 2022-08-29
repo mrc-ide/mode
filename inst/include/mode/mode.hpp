@@ -41,6 +41,7 @@ public:
       rng_(n_particles_total_, seed, false),
       errors_(n_particles) {
     auto y = m_[0].initial(time);
+    solver_.reserve(n_particles);
     for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m_[0], time, y, ctl));
     }
@@ -60,34 +61,39 @@ public:
       n_threads_(n_threads),
       rng_(n_particles_total_, seed, false),
       errors_(n_particles_total_) {
-    // This bit goes into a general initialise method, we'll probably
-    // need to do this again with the parameter setting.
-    // size_t n = 0;
-    // std::vector<mode::particle<T>> p;
-    // for (size_t i = 0; i < n_pars_; ++i) {
-    //   p.push_back(mode::particle<T>(pars[i], step));
-    //   if (n > 0 && p.back().size() != n) {
-    //     std::stringstream msg;
-    //     msg << "'pars' created inconsistent state size: " <<
-    //       "expected length " << n << " but parameter set " << i + 1 <<
-    //       " created length " << p.back().size();
-    //     throw std::invalid_argument(msg.str());
-    //   }
-    //   n = p.back().size(); // ensures all particles have same size
-    // }
 
-    // if (particles_.empty()) {
-    //   particles_.reserve(n_particles_total_);
-    //   for (size_t i = 0; i < n_pars; ++i) {
-    //     for (size_t j = 0; j < n_particles; ++j) {
-    //       particles_.push_back(p[i]);
-    //     }
-    //   }
-    // } else {
-    //   // parallel
-    //   // for (size_t i = 0; i < n_particles_total_; ++i) {
-    //   //   particles_[i].set_pars(p[i / n_particles], set_state);
-    //   // }
+    // TODO: This bit goes into a general initialise method, we'll
+    // probably need to do this again with the parameter setting?
+
+    // Make sure that all parameter sets create the same size state:
+    size_t n = 0;
+    const std::vector<model_type> m;
+    for (size_t i = 0; i < n_pars_; ++i) {
+      m.push_back(model_type(pars));
+      const auto ni = m.back().size();
+      if (i == 0) {
+        n = ni;
+      } else if (ni != n) {
+        std::stringstream msg;
+        msg << "'pars' created inconsistent state size: " <<
+          "expected length " << n << " but parameter set " << i + 1 <<
+          " created length " << ni;
+        throw std::invalid_argument(msg.str());
+      }
+    }
+
+    // on first creation:
+    solver_.reserve(n_particles_total_);
+    for (size_t i = 0; i < n_pars; ++i) {
+      const auto y = m_[i].initial(time);
+      for (size_t j = 0; j < n_particles; ++j) {
+        solver_.push_back(solver<model_type>(m_[i], time, y, ctl));
+      }
+    }
+
+    // on update:
+    // for (size_t i = 0; i < n_particles_total_; ++i) {
+    //   solver_[i].set_pars(pars[i / n_particles]);
     // }
 
     if (n_particles > 0) {
@@ -267,6 +273,8 @@ public:
     }
   }
 
+  // TODO: why does this not need set_state, dust does; there must be
+  // some differently located logic which is a bit of a pity.
   // TODO: fix this for the multiparameter case
   // TODO: validate that we produce the correct size here in the
   // single parameter case, too.
