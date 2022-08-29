@@ -31,15 +31,15 @@ public:
   // Single parameter set case
   container(const pars_type &pars, const double time,
             const size_t n_particles, const size_t n_threads,
-            const control ctl, const std::vector<rng_int_type>& seed) :
-    n_pars_(0),
-    n_particles_each_(n_particles),
-    n_particles_total_(n_particles),
-    pars_are_shared_(true),
-    n_threads_(n_threads),
-    m_({model_type(pars)}),
-    rng_(n_particles_total_, seed, false),
-    errors_(n_particles) {
+            const control ctl, const std::vector<rng_int_type>& seed)
+    : n_pars_(0),
+      n_particles_each_(n_particles),
+      n_particles_total_(n_particles),
+      pars_are_shared_(true),
+      n_threads_(n_threads),
+      m_({model_type(pars)}),
+      rng_(n_particles_total_, seed, false),
+      errors_(n_particles) {
     auto y = m_[0].initial(time);
     for (size_t i = 0; i < n_particles; ++i) {
       solver_.push_back(solver<model_type>(m_[0], time, y, ctl));
@@ -52,15 +52,14 @@ public:
   container(const std::vector<pars_type>& pars, const double time,
             const size_t n_particles, const size_t n_threads,
             const control ctl, const std::vector<rng_int_type>& seed,
-            const std::vector<size_t>& shape) :
-    n_pars_(pars.size()),
-    n_particles_each_(n_particles == 0 ? 1 : n_particles),
-    n_particles_total_(n_particles_each_ * n_pars_),
-    pars_are_shared_(n_particles != 0),
-    n_threads_(n_threads),
-    rng_(n_particles_total_, seed, false),
-    errors_(n_particles_total_) {
-
+            const std::vector<size_t>& shape)
+    : n_pars_(pars.size()),
+      n_particles_each_(n_particles == 0 ? 1 : n_particles),
+      n_particles_total_(n_particles_each_ * n_pars_),
+      pars_are_shared_(n_particles != 0),
+      n_threads_(n_threads),
+      rng_(n_particles_total_, seed, false),
+      errors_(n_particles_total_) {
     // This bit goes into a general initialise method, we'll probably
     // need to do this again with the parameter setting.
     // size_t n = 0;
