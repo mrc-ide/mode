@@ -3,11 +3,11 @@
 {{model}}
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time,
-                         size_t n_particles, size_t n_threads,
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, bool pars_multi, double time,
+                         cpp11::sexp n_particles, size_t n_threads,
                          cpp11::sexp control, cpp11::sexp seed) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, n_threads,
-      control, seed);
+  return mode::r::mode_alloc<{{class}}>(r_pars, pars_multi, time, n_particles,
+                                        n_threads, control, seed);
 }
 
 [[cpp11::register]]

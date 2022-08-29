@@ -19,19 +19,53 @@ namespace mode {
 namespace r {
 
 template <typename T>
-cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
-                       size_t n_threads,
+cpp11::list mode_alloc(cpp11::list r_pars, double pars_multi, double time,
+                       cpp11::sexp r_n_particles, size_t n_threads,
                        cpp11::sexp control, cpp11::sexp r_seed) {
-  auto pars = mode::mode_pars<T>(r_pars);
+  mode::r::validate_positive(n_threads, "n_threads");
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_control(control);
-  cpp11::sexp info = mode_info(pars);
-  mode::r::validate_positive(n_threads, "n_threads");
-  mode::r::validate_positive(n_particles, "n_particles");
-  container<T> *d = new mode::container<T>(pars, time, n_particles,
-                                           n_threads, ctl, seed);
+
+  container<T> *d = nullptr;
+  cpp11::sexp info;
+  if (pars_multi) {
+    mode::r::check_pars_multi(r_pars);
+    std::vector<pars_type<T>> pars;
+    cpp11::writable::list info = cpp11::writable::list(r_pars.size());
+    for (int i = 0; i < r_pars.size(); ++i) {
+      pars.push_back(mode::mode_pars<T>(r_pars[i]));
+      info[i] = mode_info<T>(pars[i]);
+    }
+    cpp11::sexp dim_pars = r_pars.attr("dim");
+    std::vector<size_t> shape;
+    if (dim_pars == R_NilValue) {
+      shape.push_back(pars.size());
+    } else {
+      cpp11::integers dim_pars_int = cpp11::as_cpp<cpp11::integers>(dim_pars);
+      for (int i = 0; i < dim_pars_int.size(); ++i) {
+        shape.push_back(dim_pars_int[i]);
+      }
+    }
+    size_t n_particles = 0;
+    if (r_n_particles != R_NilValue) {
+      n_particles = cpp11::as_cpp<int>(r_n_particles);
+      mode::r::validate_positive(n_particles, "n_particles");
+    }
+    d = new mode::container<T>(pars, time, n_particles, n_threads, ctl, seed,
+                               shape);
+  } else {
+    auto n_particles = cpp11::as_cpp<int>(r_n_particles);
+    mode::r::validate_positive(n_particles, "n_particles");
+    auto pars = mode::mode_pars<T>(r_pars);
+    info = mode_info(pars);
+    d = new mode::container<T>(pars, time, n_particles, n_threads, ctl, seed);
+  }
+
   cpp11::external_pointer<container<T>> ptr(d, true, false);
-  return cpp11::writable::list({ptr, info});
+  cpp11::writable::integers r_shape =
+    mode::r::vector_size_to_int(d->shape());
+
+  return cpp11::writable::list({ptr, info, r_shape});
 }
 
 template <typename T>

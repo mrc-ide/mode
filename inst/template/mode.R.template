@@ -7,19 +7,28 @@
     info_ = NULL,
     ptr_ = NULL,
     n_particles_ = NULL,
+    n_particles_each_ = NULL,
+    shape_ = NULL,
     n_threads_ = NULL,
     index_ = NULL
   ),
 
   public = list(
     initialize = function(pars, time, n_particles, n_threads = 1L,
-                          control = NULL, seed = NULL) {
-      res <- mode_{{name}}_alloc(pars, time, n_particles,
+                          control = NULL, seed = NULL,
+                          pars_multi = FALSE) {
+      res <- mode_{{name}}_alloc(pars, pars_multi, time, n_particles,
                                  n_threads, control, seed)
       private$ptr_ <- res[[1]]
       private$info_ <- res[[2]]
+      private$shape_ <- res[[3]]
       private$pars_ <- pars
-      private$n_particles_ <- n_particles
+      private$n_particles_ <- prod(private$shape_)
+      if (pars_multi) {
+        private$n_particles_each_ <- private$n_particles_ / length(pars)
+      } else {
+        private$n_particles_each_ <- private$n_particles_
+      }
       private$n_threads_ <- n_threads
     },
 
@@ -28,7 +37,15 @@
     },
 
     n_particles = function() {
-       private$n_particles_
+      private$n_particles_
+    },
+
+    n_particles_each = function() {
+      private$n_particles_each_
+    },
+
+    shape = function() {
+      private$shape_
     },
 
     pars = function() {
@@ -115,6 +132,7 @@
         private$pars_ <- pars
         private$info_ <- info
       }
+      invisible()
     },
 
     reorder = function(index) {
@@ -133,5 +151,4 @@
     has_openmp = function() {
       mode_{{name}}_has_openmp()
     }
-
   ))

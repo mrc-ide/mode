@@ -16,6 +16,29 @@ int r_index_check(int x, int max) {
   return x - 1;
 }
 
+// inline void check_pars_multi(cpp11::list r_pars,
+//                              std::vector<size_t> shape,
+//                              const bool pars_are_shared) {
+//   if (r_pars.attr("names") != R_NilValue) {
+//     cpp11::stop("Expected an unnamed list for 'pars' (given 'pars_multi')");
+//   }
+//   if (pars_are_shared) {
+//     shape = std::vector<size_t>(shape.begin() + 1, shape.end());
+//   }
+//   check_dimensions(r_pars, r_pars.size(), shape, true, "pars");
+// }
+
+// This version used on initialisation where we are trying to find
+// dim, not check it. There are far fewer constraints in this case.
+inline void check_pars_multi(cpp11::list r_pars) {
+  if (r_pars.attr("names") != R_NilValue) {
+    cpp11::stop("Expected an unnamed list for 'pars' (given 'pars_multi')");
+  }
+  if (r_pars.size() == 0) {
+    cpp11::stop("Expected 'pars' to have at least one element");
+  }
+}
+
 inline
 void validate_positive(int x, const char *name) {
   if (x <= 0) {
@@ -311,6 +334,12 @@ cpp11::sexp control(const mode::control ctl) {
                                     "debug_record_step_times"_nm = ctl.debug_record_step_times});
 
   ret.attr("class") = "mode_control";
+  return ret;
+}
+
+cpp11::writable::integers vector_size_to_int(const std::vector<size_t> & x) {
+  cpp11::writable::integers ret(x.size());
+  std::copy(x.begin(), x.end(), ret.begin());
   return ret;
 }
 
