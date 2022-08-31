@@ -29,15 +29,15 @@ mode <- function(filename, quiet = FALSE, workdir = NULL, skip_cache = FALSE) {
   config <- parse_metadata(filename)
 
   if (!skip_cache && !is.null(cache[[config$base]])) {
-    pkg <- cache[[config$base]]
+    env <- cache[[config$base]]
   } else {
-    pkg <- compile_mode(filename, config, workdir, quiet)
+    env <- compile_mode(filename, config, workdir, quiet)
     if (!skip_cache) {
-      cache[[config$base]] <- pkg
+      cache[[config$base]] <- env
     }
   }
 
-  pkg$env[[config$name]]
+  env[[config$name]]
 }
 
 ##' Create a mode control object for controlling the adaptive stepper. The
@@ -86,13 +86,7 @@ compile_mode <- function(filename, config, workdir, quiet) {
   path <- generate_mode(filename, config, workdir)
   pkgbuild::compile_dll(path, compile_attributes = TRUE,
                         quiet = quiet, debug = FALSE)
-  pkg <- pkgload::load_all(path, compile = FALSE, recompile = FALSE,
-                           warn_conflicts = FALSE, export_all = FALSE,
-                           helpers = FALSE, attach_testthat = FALSE,
-                           quiet = quiet)
-  ## Don't pollute the search path
-  detach(paste0("package:", config$base), character.only = TRUE)
-  pkg
+  dust:::load_temporary_package(path, config$base, quiet)
 }
 
 
@@ -101,13 +95,16 @@ generate_mode <- function(filename, config, workdir) {
 
   ## This will likely become quite complicated and need to move into
   ## its own thing.
+  path <- mode_workdir(workdir)
+  reload_data <- list(path = path, base = config$base)
+  reload <- paste(deparse(reload_data), collapse = "\n")
   data <- list(model = model,
                name = config$name,
                class = config$class,
                base = config$base,
+               reload = reload,
                path_mode_include = mode_file("include"))
 
-  path <- mode_workdir(workdir)
   dir.create(file.path(path, "R"), FALSE, TRUE)
   dir.create(file.path(path, "src"), FALSE, TRUE)
 
