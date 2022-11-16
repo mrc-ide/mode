@@ -107,15 +107,16 @@
       invisible(prev)
     },
 
-    update_state = function(pars = NULL, time = NULL,
-                            state = NULL, index = NULL,
-                            set_initial_state = NULL, reset_step_size = NULL) {
-      info <- mode_{{name}}_update_state(private$ptr_, pars, time, state, index,
-                                 set_initial_state, reset_step_size)
+    update_state = function(pars = NULL, state = NULL, time = NULL,
+                            set_initial_state = NULL, index = NULL,
+                            reset_step_size = NULL) {
+      info <- mode_{{name}}_update_state(private$ptr_, pars, state, time,
+                               set_initial_state, index, reset_step_size)
       if (!is.null(pars)) {
         private$pars_ <- pars
         private$info_ <- info
       }
+      invisible()
     },
 
     reorder = function(index) {
