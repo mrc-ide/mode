@@ -201,10 +201,9 @@ cpp11::sexp mode_stats(SEXP ptr) {
 }
 
 template <typename T>
-cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
-                              SEXP r_index,
+cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                               SEXP r_set_initial_state,
-                              SEXP r_reset_step_size) {
+                              SEXP r_index, SEXP r_reset_step_size) {
   mode::container<T> *obj =
       cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
 
@@ -240,6 +239,11 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_time, SEXP r_state,
     obj->set_pars(pars);
     ret = mode_info<T>(pars);
   }
+  // NOTE: there's no equivalent to this in dust, with all the work
+  // done at the 'r/' level, so we don't try and preserve much about
+  // the order of variables here (partly because everywhere else
+  // within the ode work we do (time, state) not (state, time) as on
+  // entry here.
   obj->update_state(time, state, index, set_initial_state, reset_step_size);
   return ret;
 }
