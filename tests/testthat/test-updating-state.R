@@ -56,10 +56,10 @@ test_that("Updating time resets statistics", {
   initial_time <- 1
   mod <- gen$new(pars, initial_time, n_particles)
   res <- mod$run(5)
-  expect_false(all(mod$statistics() == 0))
+  expect_false(all(mod$ode_statistics() == 0))
 
   mod$update_state(time = initial_time)
-  expect_true(all(mod$statistics() == 0))
+  expect_true(all(mod$ode_statistics() == 0))
 })
 
 test_that("Updating time does not reset state if new state is provided", {
@@ -221,9 +221,9 @@ test_that("Updating state does not reset statistics", {
   n_particles <- 2
   mod <- gen$new(pars, 0, n_particles)
   res <- mod$run(2)
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   mod$update_state(state = c(2, 2))
-  expect_identical(stats, mod$statistics())
+  expect_identical(stats, mod$ode_statistics())
 })
 
 test_that("Nothing happens if any arguments are invalid", {
@@ -366,9 +366,9 @@ test_that("Can reorder particles", {
   mod_fresh$update_state(state = y)
   mod$run(100)
   mod_fresh$run(100)
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   expect_false(all(unclass(stats) == stats[, 5:1]))
-  expect_identical(stats[, 5:1], unclass(mod_fresh$statistics()))
+  expect_identical(stats[, 5:1], unclass(mod_fresh$ode_statistics()))
   expect_identical(mod$state()[, 5:1], mod_fresh$state())
 })
 
@@ -395,8 +395,8 @@ test_that("Can reorder particles with duplication", {
   mod_fresh$update_state(state = y)
   mod$run(100)
   mod_fresh$run(100)
-  stats <- mod$statistics()
-  stats_fresh <- mod_fresh$statistics()
+  stats <- mod$ode_statistics()
+  stats_fresh <- mod_fresh$ode_statistics()
   expect_false(all(unclass(stats_fresh) == stats_fresh[, order_index]))
   expect_identical(unclass(stats), stats_fresh[, order_index])
   expect_identical(mod$state(), mod_fresh$state()[, order_index])
@@ -415,16 +415,16 @@ test_that("Can reorder particles mid-flight", {
   mod$update_state(state = y0, time = initial_time)
   mod$run(5)
   y1 <- mod$run(10)
-  s1 <- mod$statistics()
+  s1 <- mod$ode_statistics()
 
   ## Run half way, reorder, continue:
   mod$update_state(state = y0, time = initial_time)
 
   y2 <- mod$run(5)
-  s2 <- mod$statistics()
+  s2 <- mod$ode_statistics()
   mod$reorder(5:1)
   y3 <- mod$run(10)
-  s3 <- mod$statistics()
+  s3 <- mod$ode_statistics()
 
   expect_identical(y3, y1[, 5:1])
   expect_true(all(unclass(s3) == s3[, 5:1]))

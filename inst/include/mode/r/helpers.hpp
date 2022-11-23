@@ -269,7 +269,7 @@ bool validate_logical(SEXP r_value, bool default_value, const char * name) {
 }
 
 inline
-mode::control validate_control(cpp11::sexp r_control) {
+mode::control validate_ode_control(cpp11::sexp r_control) {
   const auto defaults = mode::control();
   if (r_control == R_NilValue) {
     return defaults;

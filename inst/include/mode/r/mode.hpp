@@ -19,19 +19,29 @@ namespace mode {
 namespace r {
 
 template <typename T>
-cpp11::list mode_alloc(cpp11::list r_pars, double time, size_t n_particles,
-                       size_t n_threads,
-                       cpp11::sexp control, cpp11::sexp r_seed) {
+cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
+                       cpp11::sexp r_n_particles, size_t n_threads,
+                       cpp11::sexp r_seed, bool deterministic,
+                       cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
+  if (deterministic) {
+    cpp11::stop("Deterministic mode not supported for model models");
+  }
+  if (r_gpu_config != R_NilValue) {
+    cpp11::stop("GPU support not enabled for this object");
+  }
   auto pars = mode::mode_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
-  auto ctl = mode::r::validate_control(control);
+  auto ctl = mode::r::validate_ode_control(r_ode_control);
   cpp11::sexp info = mode_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
+  auto n_particles = cpp11::as_cpp<int>(r_n_particles);
   mode::r::validate_positive(n_particles, "n_particles");
   container<T> *d = new mode::container<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
   cpp11::external_pointer<container<T>> ptr(d, true, false);
-  return cpp11::writable::list({ptr, info});
+  cpp11::writable::integers r_shape({n_particles});
+  auto r_ctl = mode::r::control(ctl);
+  return cpp11::writable::list({ptr, info, r_shape, r_gpu_config, r_ctl});
 }
 
 template <typename T>
@@ -39,13 +49,6 @@ void mode_set_n_threads(SEXP ptr, size_t n_threads) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   mode::r::validate_positive(n_threads, "n_threads");
   obj->set_n_threads(n_threads);
-}
-
-template <typename T>
-cpp11::sexp mode_control(SEXP ptr) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  auto ctl = obj->ctl();
-  return mode::r::control(ctl);
 }
 
 template <typename T>
@@ -249,15 +252,9 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
 }
 
 template <typename T>
-size_t mode_n_state_full(SEXP ptr) {
+size_t mode_n_state(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   return obj->n_state_full();
-}
-
-template <typename T>
-size_t mode_n_state_run(SEXP ptr) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_state_run();
 }
 
 template <typename T>
