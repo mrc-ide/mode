@@ -97,14 +97,14 @@
       private$ode_control_
     },
 
-    run = function(end_time) {
-      m <- mode_{{name}}_run(private$ptr_, end_time)
+    run = function(time_end) {
+      m <- mode_{{name}}_run(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },
 
-    simulate = function(end_time) {
-      m <- mode_{{name}}_simulate(private$ptr_, end_time)
+    simulate = function(time_end) {
+      m <- mode_{{name}}_simulate(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },

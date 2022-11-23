@@ -196,7 +196,7 @@ test_that("End time must be later than initial time", {
   initial_time <- 5
   mod <- ex$generator$new(ex$pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  e <- "'end_time' (2.000000) must be greater than current time (5.000000)"
+  e <- "'time_end' (2.000000) must be greater than current time (5.000000)"
   expect_error(mod$run(2), e, fixed = TRUE)
 })
 
@@ -619,16 +619,16 @@ test_that("check that simulate times are reasonable", {
 
   expect_error(
     mod$simulate(seq(-5, 5, 1)),
-    "'end_time[1]' must be at least 0", fixed = TRUE)
+    "'time_end[1]' must be at least 0", fixed = TRUE)
   expect_error(
     mod$simulate(numeric(0)),
-    "'end_time' must have at least one element", fixed = TRUE)
+    "'time_end' must have at least one element", fixed = TRUE)
   expect_error(
     mod$simulate(c(0, 1, 2, 3, 2, 5)),
-    "'end_time' must be non-decreasing (error on element 5)", fixed = TRUE)
+    "'time_end' must be non-decreasing (error on element 5)", fixed = TRUE)
   expect_error(
     mod$simulate(NULL),
-    "Expected a numeric vector for 'end_time'", fixed = TRUE)
+    "Expected a numeric vector for 'time_end'", fixed = TRUE)
 })
 
 

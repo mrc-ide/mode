@@ -125,14 +125,14 @@ void mode_set_stochastic_schedule(SEXP ptr, cpp11::sexp r_time) {
 }
 
 template <typename T>
-cpp11::sexp mode_run(SEXP ptr, double end_time) {
+cpp11::sexp mode_run(SEXP ptr, double time_end) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   auto time = obj->time();
-  if (end_time < time) {
-    cpp11::stop("'end_time' (%f) must be greater than current time (%f)",
-                end_time, time);
+  if (time_end < time) {
+    cpp11::stop("'time_end' (%f) must be greater than current time (%f)",
+                time_end, time);
   }
-  obj->run(end_time);
+  obj->run(time_end);
 
   std::vector<double> dat(obj->n_state_run() * obj->n_particles());
   obj->state_run(dat);
@@ -140,25 +140,25 @@ cpp11::sexp mode_run(SEXP ptr, double end_time) {
 }
 
 template <typename T>
-cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_end_time) {
+cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   obj->check_errors();
-  const auto end_time = as_vector_double(r_end_time, "end_time");
-  const auto n_time = end_time.size();
+  const auto time_end = as_vector_double(r_time_end, "time_end");
+  const auto n_time = time_end.size();
   if (n_time == 0) {
-    cpp11::stop("'end_time' must have at least one element");
+    cpp11::stop("'time_end' must have at least one element");
   }
-  if (end_time[0] < obj->time()) {
-    cpp11::stop("'end_time[1]' must be at least %f", obj->time());
+  if (time_end[0] < obj->time()) {
+    cpp11::stop("'time_end[1]' must be at least %f", obj->time());
   }
   for (size_t i = 1; i < n_time; ++i) {
-    if (end_time[i] < end_time[i - 1]) {
-      cpp11::stop("'end_time' must be non-decreasing (error on element %d)",
+    if (time_end[i] < time_end[i - 1]) {
+      cpp11::stop("'time_end' must be non-decreasing (error on element %d)",
                   i + 1);
     }
   }
 
-  auto dat = obj->simulate(end_time);
+  auto dat = obj->simulate(time_end);
 
   return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
                               n_time);

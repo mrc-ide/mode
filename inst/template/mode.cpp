@@ -29,13 +29,13 @@ cpp11::sexp mode_{{name}}_set_rng_state(SEXP ptr, cpp11::raws rng_state) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_run(SEXP ptr, double end_time) {
-  return mode::r::mode_run<mode::container<{{class}}>>(ptr, end_time);
+cpp11::sexp mode_{{name}}_run(SEXP ptr, double time_end) {
+  return mode::r::mode_run<mode::container<{{class}}>>(ptr, time_end);
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_simulate(SEXP ptr, cpp11::sexp end_time) {
-  return mode::r::mode_simulate<mode::container<{{class}}>>(ptr, end_time);
+cpp11::sexp mode_{{name}}_simulate(SEXP ptr, cpp11::sexp time_end) {
+  return mode::r::mode_simulate<mode::container<{{class}}>>(ptr, time_end);
 }
 
 [[cpp11::register]]
