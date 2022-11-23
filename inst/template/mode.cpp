@@ -99,3 +99,37 @@ void mode_{{name}}_set_n_threads(SEXP ptr, int n_threads) {
 cpp11::sexp mode_{{name}}_capabilities() {
   return mode::r::mode_capabilities<{{class}}>();
 }
+
+SEXP mode_{{name}}_resample(SEXP ptr, cpp11::doubles r_weights) {
+  return mode::r::mode_resample<mode::container<{{class}}>>(ptr, r_weights);
+}
+
+[[cpp11::register]]
+SEXP mode_{{name}}_set_data(SEXP ptr, cpp11::list data, bool shared) {
+  mode::r::mode_set_data<mode::container<{{class}}>>(ptr, data, shared);
+  return R_NilValue;
+}
+
+[[cpp11::register]]
+SEXP mode_{{name}}_compare_data(SEXP ptr) {
+  return mode::r::mode_compare_data<mode::container<{{class}}>>(ptr);
+}
+
+[[cpp11::register]]
+SEXP mode_{{name}}_filter(SEXP ptr, SEXP time_end, bool save_trajectories,
+                          cpp11::sexp time_snapshot,
+                          cpp11::sexp min_log_likelihood) {
+  return mode::r::mode_filter<mode::container<{{class}}>>(ptr, time_end,
+                                                save_trajectories,
+                                                time_snapshot,
+                                                min_log_likelihood);
+}
+
+[[cpp11::register]]
+bool mode_{{name}}_has_openmp() {
+#ifdef _OPENMP
+  return true;
+#else
+  return false;
+#endif
+}
