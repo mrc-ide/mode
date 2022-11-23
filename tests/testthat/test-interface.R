@@ -673,5 +673,5 @@ test_that("prevent use of deterministic mode", {
   ex <- example_logistic()
   expect_error(
     ex$generator$new(ex$pars, 0, 1, deterministic = TRUE),
-    "Deterministic mode not supported for model models")
+    "Deterministic mode not supported for mode models")
 })
