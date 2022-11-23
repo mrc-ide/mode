@@ -159,7 +159,27 @@
     },
 
     has_openmp = function() {
-      mode_{{name}}_has_openmp()
+      mode_{{name}}_capabilities()[["openmp"]]
+    },
+
+    has_gpu_support = function(fake_gpu = FALSE) {
+      if (fake_gpu) {
+        FALSE
+      } else {
+        mode_{{name}}_capabilities()[["gpu"]]
+      }
+    },
+
+    has_compare = function() {
+      mode_{{name}}_capabilities()[["compare"]]
+    },
+
+    real_size = function() {
+      mode_{{name}}_capabilities()[["real_size"]]
+    },
+
+    rng_algorithm = function() {
+      mode_{{name}}_capabilities()[["rng_algorithm"]]
     }
   ))
 class({{name}}) <- c("mode_generator", class({{name}}))

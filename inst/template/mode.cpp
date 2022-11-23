@@ -96,10 +96,6 @@ void mode_{{name}}_set_n_threads(SEXP ptr, int n_threads) {
 }
 
 [[cpp11::register]]
-bool mode_{{name}}_has_openmp() {
-#ifdef _OPENMP
-  return true;
-#else
-  return false;
-#endif
+cpp11::sexp mode_{{name}}_capabilities() {
+  return mode::r::mode_capabilities<{{class}}>();
 }
