@@ -24,7 +24,7 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
                        cpp11::sexp r_seed, bool deterministic,
                        cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
   if (deterministic) {
-    cpp11::stop("Deterministic mode not supported for model models");
+    cpp11::stop("Deterministic mode not supported for mode models");
   }
   if (r_gpu_config != R_NilValue) {
     cpp11::stop("GPU support not enabled for this object");
