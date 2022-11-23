@@ -7,6 +7,9 @@ test_that("Can compile a simple model", {
   expect_equal(mod$pars(), ex$pars)
   expect_equal(mod$info(), c("N1", "N2"))
   expect_equal(mod$n_particles(), n_particles)
+  expect_equal(mod$shape(), n_particles)
+  expect_equal(mod$n_particles_each(), n_particles)
+  expect_equal(mod$n_pars(), 0L)
   expected_control <- mode_control(max_steps = 10000, rtol = 1e-6, atol = 1e-6,
                                    step_size_min = 1e-8, step_size_max = Inf,
                                    debug_record_step_times = FALSE)
@@ -97,6 +100,9 @@ test_that("Error if initialised with no particles", {
   n_particles <- 10
   expect_error(ex$generator$new(ex$pars, 0, 0),
                "'n_particles' must be positive (was given 0)",
+               fixed = TRUE)
+  expect_error(ex$generator$new(ex$pars, 0, -1),
+               "'n_particles' must be positive (was given -1)",
                fixed = TRUE)
 })
 
@@ -652,4 +658,20 @@ test_that("Can save a model and reload it after repair", {
 
   cmp <- gen$new(pars, 0, 1, seed = 1)$run(10)
   expect_equal(res, cmp)
+})
+
+
+test_that("prevent use of gpu", {
+  ex <- example_logistic()
+  expect_error(
+    ex$generator$new(ex$pars, 0, 1, gpu_config = 1),
+    "GPU support not enabled for this object")
+})
+
+
+test_that("prevent use of deterministic mode", {
+  ex <- example_logistic()
+  expect_error(
+    ex$generator$new(ex$pars, 0, 1, deterministic = TRUE),
+    "Deterministic mode not supported for model models")
 })
