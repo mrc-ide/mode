@@ -675,3 +675,15 @@ test_that("prevent use of deterministic mode", {
     ex$generator$new(ex$pars, 0, 1, deterministic = TRUE),
     "Deterministic mode not supported for mode models")
 })
+
+
+test_that("investigate model capabilities", {
+  ex <- example_logistic()
+  mod <- ex$generator$new(ex$pars, 0, 1)
+  expect_type(mod$has_openmp(), "logical")
+  expect_false(mod$has_gpu_support())
+  expect_false(mod$has_gpu_support(TRUE))
+  expect_false(mod$has_compare())
+  expect_equal(mod$real_size(), 64)
+  expect_equal(mod$rng_algorithm(), "xoshiro256plus")
+})

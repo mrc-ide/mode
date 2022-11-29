@@ -276,5 +276,26 @@ void mode_reorder(SEXP ptr, cpp11::sexp r_index) {
   obj->reorder(index);
 }
 
+template <typename T>
+cpp11::sexp mode_capabilities() {
+  using namespace cpp11::literals;
+#ifdef _OPENMP
+  bool openmp = true;
+#else
+  bool openmp = false;
+#endif
+  bool gpu = false;
+  bool compare = false;
+  using real_type = double; // typename T::real_type;
+  auto real_size = sizeof(real_type);
+  auto rng_algorithm =
+    dust::random::r::algorithm_name<typename T::rng_state_type>();
+  return cpp11::writable::list({"openmp"_nm = openmp,
+                                "compare"_nm = compare,
+                                "gpu"_nm = gpu,
+                                "rng_algorithm"_nm = rng_algorithm,
+                                "real_size"_nm = real_size * CHAR_BIT});
+}
+
 }
 }
