@@ -41,11 +41,6 @@ cpp11::sexp mode_{{name}}_simulate(SEXP ptr, cpp11::sexp time_end) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_state_full(SEXP ptr) {
-  return mode::r::mode_state_full<{{name}}_{{target}}>(ptr);
-}
-
-[[cpp11::register]]
 cpp11::sexp mode_{{name}}_state(SEXP ptr, SEXP index) {
   return mode::r::mode_state<{{name}}_{{target}}>(ptr, index);
 }

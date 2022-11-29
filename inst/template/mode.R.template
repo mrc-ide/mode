@@ -120,7 +120,7 @@
     },
 
     ode_statistics = function() {
-      private$methods_$stats(private$ptr_)
+      private$methods_$ode_statistics(private$ptr_)
     },
 
     n_state = function() {
@@ -161,11 +161,9 @@
     },
 
     state = function(index = NULL) {
-      if (is.null(index)) {
-        private$methods_$state_full(private$ptr_)
-      } else {
-        private$methods_$state(private$ptr_, index)
-      }
+      m <- private$methods_$state(private$ptr_, index)
+      rownames(m) <- names(index)
+      m
     },
 
     resample = function(weights) {
