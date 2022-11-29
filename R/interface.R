@@ -114,7 +114,7 @@ mode_template_data <- function(model, config, reload_data) {
        param = "NULL",
        cuda = NULL, # unused here, used in dust
        target = "ode",
-       container = "container", # TODO: Change this to dust_ode
+       container = "dust_ode",
        has_gpu_support = as.character(FALSE),
        methods_gpu = methods_gpu,
        methods_cpu = methods_cpu,

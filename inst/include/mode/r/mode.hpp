@@ -33,9 +33,9 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   mode::r::validate_positive(n_threads, "n_threads");
   auto n_particles = cpp11::as_cpp<int>(r_n_particles);
   mode::r::validate_positive(n_particles, "n_particles");
-  container<T> *d = new mode::container<T>(pars, time, n_particles,
+  dust_ode<T> *d = new mode::dust_ode<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
-  cpp11::external_pointer<container<T>> ptr(d, true, false);
+  cpp11::external_pointer<dust_ode<T>> ptr(d, true, false);
   cpp11::writable::integers r_shape({n_particles});
   auto r_ctl = mode::r::control(ctl);
   return cpp11::writable::list({ptr, info, r_shape, r_gpu_config, r_ctl});
@@ -204,8 +204,8 @@ template <typename T>
 cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                               SEXP r_set_initial_state,
                               SEXP r_index, SEXP r_reset_step_size) {
-  mode::container<T> *obj =
-      cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
+  mode::dust_ode<T> *obj =
+      cpp11::as_cpp < cpp11::external_pointer<mode::dust_ode<T>>>(ptr).get();
 
   std::vector<size_t> index;
   const size_t index_max = obj->n_variables();
