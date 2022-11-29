@@ -297,6 +297,7 @@ cpp11::sexp mode_capabilities() {
                                 "real_size"_nm = real_size * CHAR_BIT});
 }
 
+template <typename T>
 SEXP mode_resample(SEXP ptr, cpp11::doubles r_weights) {
   cpp11::stop("Can't use resample with mode models");
   return R_NilValue; // unreachable

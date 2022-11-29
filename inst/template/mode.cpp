@@ -100,8 +100,10 @@ cpp11::sexp mode_{{name}}_capabilities() {
   return mode::r::mode_capabilities<{{class}}>();
 }
 
+[[cpp11::register]]
 SEXP mode_{{name}}_resample(SEXP ptr, cpp11::doubles r_weights) {
   return mode::r::mode_resample<mode::container<{{class}}>>(ptr, r_weights);
+  return R_NilValue;
 }
 
 [[cpp11::register]]
