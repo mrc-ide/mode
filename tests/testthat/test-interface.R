@@ -687,3 +687,24 @@ test_that("investigate model capabilities", {
   expect_equal(mod$real_size(), 64)
   expect_equal(mod$rng_algorithm(), "xoshiro256plus")
 })
+
+
+test_that("dummy data methods error on use", {
+  ex <- example_logistic()
+  n_particles <- 10
+  mod <- ex$generator$new(ex$pars, pi, n_particles)
+  expect_error(mod$resample(rep(1, n_particles)),
+               "Can't use resample with mode models")
+  expect_error(
+    mod$set_data(list(list(1, list()))),
+    "The 'set_data' method is not supported for this class")
+  expect_error(
+    mod$set_data(list()),
+    "The 'set_data' method is not supported for this class")
+  expect_error(
+    mod$compare_data(),
+    "The 'compare_data' method is not supported for this class")
+  expect_error(
+    mod$filter(),
+    "The 'filter' method is not supported for this class")
+})

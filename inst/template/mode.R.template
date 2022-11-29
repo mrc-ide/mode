@@ -158,6 +158,24 @@
       }
     },
 
+    resample = function(weights) {
+      invisible(mode_{{name}}_resample(private$ptr_, weights))
+    },
+
+    set_data = function(data, shared = FALSE) {
+      mode_{{name}}_set_data(private$ptr_, data, shared)
+    },
+
+    compare_data = function() {
+      mode_{{name}}_compare_data(private$ptr_)
+    },
+
+    filter = function(time_end = NULL, save_trajectories = FALSE,
+                      time_snapshot = NULL, min_log_likelihood = NULL) {
+      mode_{{name}}_filter(private$ptr_, time_end, save_trajectories,
+                           time_snapshot, min_log_likelihood)
+    },
+
     has_openmp = function() {
       mode_{{name}}_capabilities()[["openmp"]]
     },

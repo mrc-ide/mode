@@ -297,5 +297,36 @@ cpp11::sexp mode_capabilities() {
                                 "real_size"_nm = real_size * CHAR_BIT});
 }
 
+template <typename T>
+SEXP mode_resample(SEXP ptr, cpp11::doubles r_weights) {
+  cpp11::stop("Can't use resample with mode models");
+  return R_NilValue; // unreachable
+}
+
+// This is the approach used in dust, but though it switches using the
+// value of the data type, which we don't support yet.
+inline void disable_method(const char * name) {
+  cpp11::stop("The '%s' method is not supported for this class", name);
+}
+
+template <typename T>
+void mode_set_data(SEXP ptr, cpp11::list r_data, bool data_is_shared) {
+  disable_method("set_data");
+}
+
+template <typename T>
+cpp11::sexp mode_compare_data(SEXP ptr) {
+  disable_method("compare_data");
+  return R_NilValue; // #nocov never gets here
+}
+
+template <typename T>
+cpp11::sexp mode_filter(SEXP ptr, SEXP time_end, bool save_trajectories,
+                        cpp11::sexp time_snapshot,
+                        cpp11::sexp min_log_likelihood) {
+  disable_method("filter");
+  return R_NilValue; // #nocov never gets here
+}
+
 }
 }
