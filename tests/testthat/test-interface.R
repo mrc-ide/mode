@@ -686,7 +686,7 @@ test_that("investigate model capabilities", {
   expect_false(mod$has_compare())
   expect_equal(mod$real_size(), 64)
   expect_equal(mod$rng_algorithm(), "xoshiro256plus")
-}
+})
 
 
 test_that("dummy data methods error on use", {
