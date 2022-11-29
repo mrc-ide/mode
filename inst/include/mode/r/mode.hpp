@@ -26,9 +26,6 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   if (deterministic) {
     cpp11::stop("Deterministic mode not supported for mode models");
   }
-  if (r_gpu_config != R_NilValue) {
-    cpp11::stop("GPU support not enabled for this object");
-  }
   auto pars = mode::mode_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
