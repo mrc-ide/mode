@@ -7,10 +7,13 @@ test_that("Can compile a simple model", {
   expect_equal(mod$pars(), ex$pars)
   expect_equal(mod$info(), c("N1", "N2"))
   expect_equal(mod$n_particles(), n_particles)
+  expect_equal(mod$shape(), n_particles)
+  expect_equal(mod$n_particles_each(), n_particles)
+  expect_equal(mod$n_pars(), 0L)
   expected_control <- mode_control(max_steps = 10000, rtol = 1e-6, atol = 1e-6,
                                    step_size_min = 1e-8, step_size_max = Inf,
                                    debug_record_step_times = FALSE)
-  expect_equal(mod$control(), expected_control)
+  expect_equal(mod$ode_control(), expected_control)
 })
 
 test_that("Can compile a simple model with control", {
@@ -19,8 +22,8 @@ test_that("Can compile a simple model with control", {
   control <- mode_control(max_steps = 10, rtol = 0.01, atol = 0.02,
                           step_size_min = 0.1, step_size_max = 1,
                           debug_record_step_times = FALSE)
-  mod <- ex$generator$new(ex$pars, pi, n_particles, control = control)
-  ctl <- mod$control()
+  mod <- ex$generator$new(ex$pars, pi, n_particles, ode_control = control)
+  ctl <- mod$ode_control()
   expect_s3_class(control, "mode_control")
   expect_s3_class(ctl, "mode_control")
   expect_equal(ctl, control)
@@ -29,7 +32,7 @@ test_that("Can compile a simple model with control", {
 test_that("Can compile a simple model with partial control", {
   ex <- example_logistic()
   generate_control <- function(control) {
-    ex$generator$new(ex$pars, pi, 10, control = control)$control()
+    ex$generator$new(ex$pars, pi, 10, ode_control = control)$ode_control()
   }
 
   control <- mode_control(max_steps = 10, atol = 0.2)
@@ -97,6 +100,9 @@ test_that("Error if initialised with no particles", {
   n_particles <- 10
   expect_error(ex$generator$new(ex$pars, 0, 0),
                "'n_particles' must be positive (was given 0)",
+               fixed = TRUE)
+  expect_error(ex$generator$new(ex$pars, 0, -1),
+               "'n_particles' must be positive (was given -1)",
                fixed = TRUE)
 })
 
@@ -190,7 +196,7 @@ test_that("End time must be later than initial time", {
   initial_time <- 5
   mod <- ex$generator$new(ex$pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  e <- "'end_time' (2.000000) must be greater than current time (5.000000)"
+  e <- "'time_end' (2.000000) must be greater than current time (5.000000)"
   expect_error(mod$run(2), e, fixed = TRUE)
 })
 
@@ -223,14 +229,14 @@ test_that("Can retrieve statistics", {
   ex <- example_logistic()
   n_particles <- 5
   mod <- ex$generator$new(ex$pars, 1, n_particles)
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   expect_equal(dim(stats), c(3, n_particles))
   expect_equal(row.names(stats),
                c("n_steps", "n_steps_accepted", "n_steps_rejected"))
   expect_s3_class(stats, "mode_statistics")
   expect_true(all(stats == 0))
   lapply(1:10, function(t) mod$run(t))
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
 
@@ -241,14 +247,14 @@ test_that("Can retrieve statistics", {
   ex <- example_logistic()
   n_particles <- 5
   mod <- ex$generator$new(ex$pars, 1, n_particles)
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   expect_equal(dim(stats), c(3, n_particles))
   expect_equal(row.names(stats),
                c("n_steps", "n_steps_accepted", "n_steps_rejected"))
   expect_s3_class(stats, "mode_statistics")
   expect_true(all(stats == 0))
   lapply(1:10, function(t) mod$run(t))
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   expect_true(all(stats == stats[, rep(1, n_particles)]))
   expect_true(all(stats["n_steps", ] > 0))
 })
@@ -256,14 +262,11 @@ test_that("Can retrieve statistics", {
 test_that("Can get model size", {
   ex <- example_logistic()
   mod <- ex$generator$new(ex$pars, 1, 1)
-  expect_equal(mod$n_state_run(), 3)
-  expect_equal(mod$n_state_full(), 3)
+  expect_equal(mod$n_state(), 3)
   mod$set_index(1)
-  expect_equal(mod$n_state_run(), 1)
-  expect_equal(mod$n_state_full(), 3)
+  expect_equal(mod$n_state(), 3)
   mod$set_index(c(1, 2, 3))
-  expect_equal(mod$n_state_run(), 3)
-  expect_equal(mod$n_state_full(), 3)
+  expect_equal(mod$n_state(), 3)
 })
 
 test_that("can run to noninteger time", {
@@ -281,7 +284,8 @@ test_that("can run to noninteger time", {
 
 test_that("Errors are reported", {
   ex <- example_logistic()
-  mod <- ex$generator$new(ex$pars, 0, 2, control = mode_control(max_steps = 1))
+  mod <- ex$generator$new(ex$pars, 0, 2,
+                          ode_control = mode_control(max_steps = 1))
   err <- expect_error(mod$run(5), "2 particles reported errors.")
   expect_match(
     err$message,
@@ -510,8 +514,8 @@ test_that("Can get information about steps", {
   pars <- list(r1 = 0.1, r2 = 0.2, K1 = 100, K2 = 200, v = 0.5)
   n_particles <- 5L
   control <- mode_control(debug_record_step_times = TRUE)
-  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
-  stats <- mod$statistics()
+  mod <- gen$new(pars, 0L, n_particles, ode_control = control, seed = 1L)
+  stats <- mod$ode_statistics()
   schedule <- seq(0, 5, length.out = 11)
   mod$set_stochastic_schedule(schedule)
 
@@ -527,7 +531,7 @@ test_that("Can get information about steps", {
 
   mod$run(10)
 
-  stats <- mod$statistics()
+  stats <- mod$ode_statistics()
   steps <- attr(stats, "step_times")
   expect_equal(lengths(steps), stats["n_steps_accepted", ])
   ## Only end points of the steps are included:
@@ -544,22 +548,22 @@ test_that("information about steps survives shuffle", {
   control <- mode_control(debug_record_step_times = TRUE)
 
   ## First, run through in one go:
-  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  mod <- gen$new(pars, 0L, n_particles, ode_control = control, seed = 1L)
   schedule <- seq(0, 5, length.out = 11)
   mod$set_stochastic_schedule(schedule)
   y1 <- mod$run(10)
-  stats1 <- mod$statistics()
+  stats1 <- mod$ode_statistics()
   steps1 <- attr(stats1, "step_times")
 
   ## At reverse, things look ok
   reverse <- rev(seq_len(n_particles))
   mod$reorder(reverse)
   expect_equal(mod$state(), y1[, reverse])
-  expect_equal(mod$statistics()[, ], stats1[, reverse])
-  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
+  expect_equal(mod$ode_statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$ode_statistics(), "step_times"), steps1[reverse])
 
   ## Then again, but shuffle at half time
-  mod <- gen$new(pars, 0L, n_particles, control = control, seed = 1L)
+  mod <- gen$new(pars, 0L, n_particles, ode_control = control, seed = 1L)
   schedule <- seq(0, 5, length.out = 11)
   mod$set_stochastic_schedule(schedule)
   mod$run(5) # must be part of the stochastic updates
@@ -567,12 +571,12 @@ test_that("information about steps survives shuffle", {
   ## Reverse the rng state too
   mod$set_rng_state(c(matrix(mod$rng_state(), ncol = n_particles)[, reverse]))
   y2 <- mod$run(10)
-  stats2 <- mod$statistics()
+  stats2 <- mod$ode_statistics()
   steps2 <- attr(stats2, "step_times")
 
   expect_equal(mod$state(), y1[, reverse])
-  expect_equal(mod$statistics()[, ], stats1[, reverse])
-  expect_equal(attr(mod$statistics(), "step_times"), steps1[reverse])
+  expect_equal(mod$ode_statistics()[, ], stats1[, reverse])
+  expect_equal(attr(mod$ode_statistics(), "step_times"), steps1[reverse])
 })
 
 
@@ -615,16 +619,16 @@ test_that("check that simulate times are reasonable", {
 
   expect_error(
     mod$simulate(seq(-5, 5, 1)),
-    "'end_time[1]' must be at least 0", fixed = TRUE)
+    "'time_end[1]' must be at least 0", fixed = TRUE)
   expect_error(
     mod$simulate(numeric(0)),
-    "'end_time' must have at least one element", fixed = TRUE)
+    "'time_end' must have at least one element", fixed = TRUE)
   expect_error(
     mod$simulate(c(0, 1, 2, 3, 2, 5)),
-    "'end_time' must be non-decreasing (error on element 5)", fixed = TRUE)
+    "'time_end' must be non-decreasing (error on element 5)", fixed = TRUE)
   expect_error(
     mod$simulate(NULL),
-    "Expected a numeric vector for 'end_time'", fixed = TRUE)
+    "Expected a numeric vector for 'time_end'", fixed = TRUE)
 })
 
 
@@ -654,4 +658,20 @@ test_that("Can save a model and reload it after repair", {
 
   cmp <- gen$new(pars, 0, 1, seed = 1)$run(10)
   expect_equal(res, cmp)
+})
+
+
+test_that("prevent use of gpu", {
+  ex <- example_logistic()
+  expect_error(
+    ex$generator$new(ex$pars, 0, 1, gpu_config = 1),
+    "GPU support not enabled for this object")
+})
+
+
+test_that("prevent use of deterministic mode", {
+  ex <- example_logistic()
+  expect_error(
+    ex$generator$new(ex$pars, 0, 1, deterministic = TRUE),
+    "Deterministic mode not supported for mode models")
 })

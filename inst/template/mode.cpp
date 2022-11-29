@@ -3,16 +3,13 @@
 {{model}}
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, double time,
-                         size_t n_particles, size_t n_threads,
-                         cpp11::sexp control, cpp11::sexp seed) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, time, n_particles, n_threads,
-      control, seed);
-}
-
-[[cpp11::register]]
-cpp11::sexp mode_{{name}}_control(SEXP ptr) {
-  return mode::r::mode_control<mode::container<{{class}}>>(ptr);
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, bool pars_multi, double time,
+                         cpp11::sexp r_n_particles, size_t n_threads,
+                         cpp11::sexp r_seed, bool deterministic,
+                         cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
+  return mode::r::mode_alloc<{{class}}>(r_pars, pars_multi, time, r_n_particles,
+                                        n_threads, r_seed, deterministic,
+                                        r_gpu_config, r_ode_control);
 }
 
 [[cpp11::register]]
@@ -32,13 +29,13 @@ cpp11::sexp mode_{{name}}_set_rng_state(SEXP ptr, cpp11::raws rng_state) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_run(SEXP ptr, double end_time) {
-  return mode::r::mode_run<mode::container<{{class}}>>(ptr, end_time);
+cpp11::sexp mode_{{name}}_run(SEXP ptr, double time_end) {
+  return mode::r::mode_run<mode::container<{{class}}>>(ptr, time_end);
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_simulate(SEXP ptr, cpp11::sexp end_time) {
-  return mode::r::mode_simulate<mode::container<{{class}}>>(ptr, end_time);
+cpp11::sexp mode_{{name}}_simulate(SEXP ptr, cpp11::sexp time_end) {
+  return mode::r::mode_simulate<mode::container<{{class}}>>(ptr, time_end);
 }
 
 [[cpp11::register]]
@@ -84,13 +81,8 @@ size_t mode_{{name}}_n_variables(SEXP ptr) {
 }
 
 [[cpp11::register]]
-size_t mode_{{name}}_n_state_run(SEXP ptr) {
-  return mode::r::mode_n_state_run<mode::container<{{class}}>>(ptr);
-}
-
-[[cpp11::register]]
-size_t mode_{{name}}_n_state_full(SEXP ptr) {
-  return mode::r::mode_n_state_full<mode::container<{{class}}>>(ptr);
+size_t mode_{{name}}_n_state(SEXP ptr) {
+  return mode::r::mode_n_state<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]

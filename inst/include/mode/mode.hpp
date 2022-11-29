@@ -93,13 +93,13 @@ public:
     return solver_[0].time();
   }
 
-  void run(double end_time) {
+  void run(double time_end) {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
       try {
-        solver_[i].solve(end_time, rng_.state(i));
+        solver_[i].solve(time_end, rng_.state(i));
       } catch (std::exception const& e) {
         errors_.capture(e, i);
       }
@@ -107,8 +107,8 @@ public:
     errors_.report();
   }
 
-  std::vector<double> simulate(const std::vector<double>& end_time) {
-    const size_t n_time = end_time.size();
+  std::vector<double> simulate(const std::vector<double>& time_end) {
+    const size_t n_time = time_end.size();
     const size_t n_state = n_state_run();
     std::vector<double> ret(n_particles() * n_state * n_time);
 
@@ -118,7 +118,7 @@ public:
     for (size_t i = 0; i < n_particles(); ++i) {
       try {
         for (size_t t = 0; t < n_time; ++t) {
-          solver_[i].solve(end_time[t], rng_.state(i));
+          solver_[i].solve(time_end[t], rng_.state(i));
           size_t offset = t * n_state * n_particles() + i * n_state;
           solver_[i].state(index_, ret.begin() + offset);
         }

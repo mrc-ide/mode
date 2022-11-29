@@ -4,24 +4,41 @@
 
   private = list(
     pars_ = NULL,
-    info_ = NULL,
-    ptr_ = NULL,
-    n_particles_ = NULL,
-    n_threads_ = NULL,
+    pars_multi_ = NULL,
     index_ = NULL,
+    info_ = NULL,
+    n_threads_ = NULL,
+    n_particles_ = NULL,
+    n_particles_each_ = NULL,
+    shape_ = NULL,
+    gpu_config_ = NULL,
+    ode_control_ = NULL,
+    ptr_ = NULL,
     reload_ = {{reload}}
   ),
 
   public = list(
     initialize = function(pars, time, n_particles, n_threads = 1L,
-                          control = NULL, seed = NULL) {
-      res <- mode_{{name}}_alloc(pars, time, n_particles,
-                                 n_threads, control, seed)
-      private$ptr_ <- res[[1]]
-      private$info_ <- res[[2]]
+                          seed = NULL, pars_multi = FALSE,
+                          deterministic = FALSE, gpu_config = NULL,
+                          ode_control = NULL) {
+      res <- mode_{{name}}_alloc(pars, pars_multi, time, n_particles,
+                                 n_threads, seed, deterministic,
+                                 gpu_config, ode_control)
       private$pars_ <- pars
-      private$n_particles_ <- n_particles
+      private$pars_multi_ <- pars_multi
       private$n_threads_ <- n_threads
+      private$ptr_ <- res[[1L]]
+      private$info_ <- res[[2L]]
+      private$shape_ <- res[[3L]]
+      private$gpu_config_ <- res[[4L]]
+      private$ode_control_ <- res[[5L]]
+      private$n_particles_ <- prod(private$shape_)
+      if (pars_multi) {
+        private$n_particles_each_ <- private$n_particles_ / length(pars)
+      } else {
+        private$n_particles_each_ <- private$n_particles_
+      }
     },
 
     name = function() {
@@ -30,6 +47,14 @@
 
     n_particles = function() {
        private$n_particles_
+    },
+
+    n_particles_each = function() {
+       private$n_particles_each_
+    },
+
+    shape = function() {
+      private$shape_
     },
 
     pars = function() {
@@ -68,32 +93,32 @@
       private$index_
     },
 
-    control = function() {
-      mode_{{name}}_control(private$ptr_)
+    ode_control = function() {
+      private$ode_control_
     },
 
-    run = function(end_time) {
-      m <- mode_{{name}}_run(private$ptr_, end_time)
+    run = function(time_end) {
+      m <- mode_{{name}}_run(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },
 
-    simulate = function(end_time) {
-      m <- mode_{{name}}_simulate(private$ptr_, end_time)
+    simulate = function(time_end) {
+      m <- mode_{{name}}_simulate(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },
 
-    statistics = function() {
+    ode_statistics = function() {
       mode_{{name}}_stats(private$ptr_)
     },
 
-    n_state_run = function() {
-      mode_{{name}}_n_state_run(private$ptr_)
+    n_state = function() {
+      mode_{{name}}_n_state(private$ptr_)
     },
 
-    n_state_full = function() {
-      mode_{{name}}_n_state_full(private$ptr_)
+    n_pars = function() {
+      if (private$pars_multi_) length(private$pars_) else 0L
     },
 
     n_threads = function() {
@@ -120,6 +145,7 @@
     },
 
     reorder = function(index) {
+      storage.mode(index) <- "integer"
       mode_{{name}}_reorder(private$ptr_, index)
       invisible()
     },
@@ -135,6 +161,5 @@
     has_openmp = function() {
       mode_{{name}}_has_openmp()
     }
-
   ))
 class({{name}}) <- c("mode_generator", class({{name}}))
