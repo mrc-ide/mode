@@ -1,6 +1,17 @@
 #include <mode/r/mode.hpp>
+#include <dust/r/gpu_info.hpp>
 
 {{model}}
+
+[[cpp11::register]]
+cpp11::sexp mode_{{name}}_capabilities() {
+  return mode::r::mode_capabilities<{{class}}>();
+}
+
+[[cpp11::register]]
+cpp11::sexp mode_{{name}}_gpu_info() {
+  return dust::gpu::r::gpu_info();
+}
 
 using {{name}}_{{target}} = mode::{{container}}<{{class}}>;
 
@@ -93,11 +104,6 @@ void mode_{{name}}_set_n_threads(SEXP ptr, int n_threads) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_capabilities() {
-  return mode::r::mode_capabilities<{{class}}>();
-}
-
-[[cpp11::register]]
 SEXP mode_{{name}}_resample(SEXP ptr, cpp11::doubles r_weights) {
   return mode::r::mode_resample<{{name}}_{{target}}>(ptr, r_weights);
   return R_NilValue;
@@ -122,13 +128,4 @@ SEXP mode_{{name}}_filter(SEXP ptr, SEXP time_end, bool save_trajectories,
                                                 save_trajectories,
                                                 time_snapshot,
                                                 min_log_likelihood);
-}
-
-[[cpp11::register]]
-bool mode_{{name}}_has_openmp() {
-#ifdef _OPENMP
-  return true;
-#else
-  return false;
-#endif
 }

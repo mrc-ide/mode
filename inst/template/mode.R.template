@@ -206,6 +206,15 @@
 
     rng_algorithm = function() {
       mode_{{name}}_capabilities()[["rng_algorithm"]]
+    },
+
+    gpu_info = function() {
+      ret <- mode_{{name}}_gpu_info()
+      parent <- parent.env(environment())
+      if (ret$has_cuda && exists("private", parent, inherits = FALSE)) {
+        ret$config <- private$gpu_config_
+      }
+      ret
     }
   ))
 class({{name}}) <- c("mode_generator", class({{name}}))
