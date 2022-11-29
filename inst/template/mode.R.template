@@ -14,6 +14,8 @@
     gpu_config_ = NULL,
     ode_control_ = NULL,
     ptr_ = NULL,
+    methods_ = NULL,
+    param_ = {{param}},
     reload_ = {{reload}}
   ),
 
@@ -22,9 +24,13 @@
                           seed = NULL, pars_multi = FALSE,
                           deterministic = FALSE, gpu_config = NULL,
                           ode_control = NULL) {
-      res <- mode_{{name}}_alloc(pars, pars_multi, time, n_particles,
-                                 n_threads, seed, deterministic,
-                                 gpu_config, ode_control)
+      if (is.null(gpu_config)) {
+        private$methods_ <- {{methods_cpu}}
+      } else {
+        private$methods_ <- {{methods_gpu}}
+      }
+      res <- private$methods_$alloc(pars, pars_multi, time, n_particles,
+                        n_threads, seed, deterministic, gpu_config, ode_control)
       private$pars_ <- pars
       private$pars_multi_ <- pars_multi
       private$n_threads_ <- n_threads
@@ -43,6 +49,10 @@
 
     name = function() {
       "{{name}}"
+    },
+
+    param = function() {
+      private$param_
     },
 
     n_particles = function() {
@@ -66,26 +76,26 @@
     },
 
     rng_state = function(first_only = FALSE, last_only = FALSE) {
-      mode_{{name}}_rng_state(private$ptr_, first_only, last_only)
+      private$methods_$rng_state(private$ptr_, first_only, last_only)
     },
 
     set_rng_state = function(rng_state) {
-      mode_{{name}}_set_rng_state(private$ptr_, rng_state)
+      private$methods_$set_rng_state(private$ptr_, rng_state)
       invisible()
     },
 
     time = function() {
-      mode_{{name}}_time(private$ptr_)
+      private$methods_$time(private$ptr_)
     },
 
     set_index = function(index) {
-      mode_{{name}}_set_index(private$ptr_, index)
+      private$methods_$set_index(private$ptr_, index)
       private$index_ <- index
       invisible()
     },
 
     set_stochastic_schedule = function(time) {
-      mode_{{name}}_set_stochastic_schedule(private$ptr_, time)
+      private$methods_$set_stochastic_schedule(private$ptr_, time)
       invisible()
     },
 
@@ -98,23 +108,23 @@
     },
 
     run = function(time_end) {
-      m <- mode_{{name}}_run(private$ptr_, time_end)
+      m <- private$methods_$run(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },
 
     simulate = function(time_end) {
-      m <- mode_{{name}}_simulate(private$ptr_, time_end)
+      m <- private$methods_$simulate(private$ptr_, time_end)
       rownames(m) <- names(private$index_)
       m
     },
 
     ode_statistics = function() {
-      mode_{{name}}_stats(private$ptr_)
+      private$methods_$stats(private$ptr_)
     },
 
     n_state = function() {
-      mode_{{name}}_n_state(private$ptr_)
+      private$methods_$n_state(private$ptr_)
     },
 
     n_pars = function() {
@@ -127,7 +137,7 @@
 
     set_n_threads = function(n_threads) {
       prev <- private$n_threads_
-      mode_{{name}}_set_n_threads(private$ptr_, n_threads)
+      private$methods_$set_n_threads(private$ptr_, n_threads)
       private$n_threads_ <- n_threads
       invisible(prev)
     },
@@ -135,7 +145,7 @@
     update_state = function(pars = NULL, state = NULL, time = NULL,
                             set_initial_state = NULL, index = NULL,
                             reset_step_size = NULL) {
-      info <- mode_{{name}}_update_state(private$ptr_, pars, state, time,
+      info <- private$methods_$update_state(private$ptr_, pars, state, time,
                                set_initial_state, index, reset_step_size)
       if (!is.null(pars)) {
         private$pars_ <- pars
@@ -146,33 +156,33 @@
 
     reorder = function(index) {
       storage.mode(index) <- "integer"
-      mode_{{name}}_reorder(private$ptr_, index)
+      private$methods_$reorder(private$ptr_, index)
       invisible()
     },
 
     state = function(index = NULL) {
       if (is.null(index)) {
-        mode_{{name}}_state_full(private$ptr_)
+        private$methods_$state_full(private$ptr_)
       } else {
-        mode_{{name}}_state(private$ptr_, index)
+        private$methods_$state(private$ptr_, index)
       }
     },
 
     resample = function(weights) {
-      invisible(mode_{{name}}_resample(private$ptr_, weights))
+      invisible(private$methods_$resample(private$ptr_, weights))
     },
 
     set_data = function(data, shared = FALSE) {
-      mode_{{name}}_set_data(private$ptr_, data, shared)
+      private$methods_$set_data(private$ptr_, data, shared)
     },
 
     compare_data = function() {
-      mode_{{name}}_compare_data(private$ptr_)
+      private$methods_$compare_data(private$ptr_)
     },
 
     filter = function(time_end = NULL, save_trajectories = FALSE,
                       time_snapshot = NULL, min_log_likelihood = NULL) {
-      mode_{{name}}_filter(private$ptr_, time_end, save_trajectories,
+      private$methods_$filter(private$ptr_, time_end, save_trajectories,
                            time_snapshot, min_log_likelihood)
     },
 
@@ -182,7 +192,7 @@
 
     has_gpu_support = function(fake_gpu = FALSE) {
       if (fake_gpu) {
-        FALSE
+        {{has_gpu_support}}
       } else {
         mode_{{name}}_capabilities()[["gpu"]]
       }

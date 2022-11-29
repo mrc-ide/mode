@@ -49,8 +49,8 @@ cpp11::sexp mode_{{name}}_state(SEXP ptr, SEXP index) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_stats(SEXP ptr) {
-  return mode::r::mode_stats<mode::container<{{class}}>>(ptr);
+cpp11::sexp mode_{{name}}_ode_statistics(SEXP ptr) {
+  return mode::r::mode_ode_statistics<mode::container<{{class}}>>(ptr);
 }
 
 [[cpp11::register]]

@@ -185,7 +185,7 @@ cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
 }
 
 template <typename T>
-cpp11::sexp mode_stats(SEXP ptr) {
+cpp11::sexp mode_ode_statistics(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const auto n_particles = obj->n_particles();
   std::vector<size_t> dat(3 * n_particles);
