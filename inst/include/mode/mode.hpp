@@ -21,16 +21,16 @@ cpp11::sexp mode_info(const mode::pars_type<T>& pars) {
 // TODO: consider a better name here, but using the same name as the
 // namespace does not end well...
 template <typename T>
-class container {
+class dust_ode {
 public:
   using model_type = T;
   using pars_type = mode::pars_type<T>;
   using rng_state_type = typename T::rng_state_type;
   using rng_int_type = typename rng_state_type::int_type;
 
-  container(const pars_type &pars, const double time,
-            const size_t n_particles, const size_t n_threads,
-            const control ctl, const std::vector<rng_int_type>& seed)
+  dust_ode(const pars_type &pars, const double time,
+           const size_t n_particles, const size_t n_threads,
+           const control ctl, const std::vector<rng_int_type>& seed)
       : n_particles_(n_particles),
         n_threads_(n_threads),
         m_(model_type(pars)),

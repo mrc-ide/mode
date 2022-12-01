@@ -708,3 +708,20 @@ test_that("dummy data methods error on use", {
     mod$filter(),
     "The 'filter' method is not supported for this class")
 })
+
+
+test_that("can retrieve empty params", {
+  ex <- example_logistic()
+  mod <- ex$generator$new(ex$pars, 0, 10)
+  expect_null(mod$param())
+})
+
+
+test_that("can retrieve empty gpu info", {
+  ex <- example_logistic()
+  mod <- ex$generator$new(ex$pars, 0, 10)
+  ## Another dust model that lacks gpu information; use this as an
+  ## expected template:
+  expected <- dust::dust_example("sir")$new(list(), 0, 1)$gpu_info()
+  expect_equal(mod$gpu_info(), expected)
+})

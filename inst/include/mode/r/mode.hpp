@@ -26,9 +26,6 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   if (deterministic) {
     cpp11::stop("Deterministic mode not supported for mode models");
   }
-  if (r_gpu_config != R_NilValue) {
-    cpp11::stop("GPU support not enabled for this object");
-  }
   auto pars = mode::mode_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
@@ -36,9 +33,9 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   mode::r::validate_positive(n_threads, "n_threads");
   auto n_particles = cpp11::as_cpp<int>(r_n_particles);
   mode::r::validate_positive(n_particles, "n_particles");
-  container<T> *d = new mode::container<T>(pars, time, n_particles,
+  dust_ode<T> *d = new mode::dust_ode<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
-  cpp11::external_pointer<container<T>> ptr(d, true, false);
+  cpp11::external_pointer<dust_ode<T>> ptr(d, true, false);
   cpp11::writable::integers r_shape({n_particles});
   auto r_ctl = mode::r::control(ctl);
   return cpp11::writable::list({ptr, info, r_shape, r_gpu_config, r_ctl});
@@ -165,16 +162,14 @@ cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
 }
 
 template <typename T>
-cpp11::sexp mode_state_full(SEXP ptr) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+cpp11::sexp mode_state_full(T *obj) {
   std::vector<double> dat(obj->n_state_full() * obj->n_particles());
   obj->state_full(dat);
   return mode::r::state_array(dat, obj->n_state_full(), obj->n_particles());
 }
 
 template <typename T>
-cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+cpp11::sexp mode_state_select(T *obj, SEXP r_index) {
   const size_t index_max = obj->n_state_full();
   const std::vector <size_t> index =
       mode::r::r_index_to_index(r_index, index_max);
@@ -185,7 +180,17 @@ cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
 }
 
 template <typename T>
-cpp11::sexp mode_stats(SEXP ptr) {
+cpp11::sexp mode_state(SEXP ptr, SEXP r_index) {
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  if (r_index == R_NilValue) {
+    return mode_state_full(obj);
+  } else {
+    return mode_state_select(obj, r_index);
+  }
+}
+
+template <typename T>
+cpp11::sexp mode_ode_statistics(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const auto n_particles = obj->n_particles();
   std::vector<size_t> dat(3 * n_particles);
@@ -207,8 +212,8 @@ template <typename T>
 cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                               SEXP r_set_initial_state,
                               SEXP r_index, SEXP r_reset_step_size) {
-  mode::container<T> *obj =
-      cpp11::as_cpp < cpp11::external_pointer<mode::container<T>>>(ptr).get();
+  mode::dust_ode<T> *obj =
+      cpp11::as_cpp < cpp11::external_pointer<mode::dust_ode<T>>>(ptr).get();
 
   std::vector<size_t> index;
   const size_t index_max = obj->n_variables();

@@ -90,6 +90,41 @@ compile_mode <- function(filename, config, workdir, quiet) {
 }
 
 
+mode_template_data <- function(model, config, reload_data) {
+  methods <- function(target) {
+    nms <- c("alloc", "run", "simulate", "set_index", "n_state",
+             "update_state", "state", "time", "reorder", "resample",
+             "rng_state", "set_rng_state", "set_n_threads",
+             "set_data", "compare_data", "filter", "set_stochastic_schedule",
+             "ode_statistics")
+    m <- sprintf("%s = mode_%s_%s", nms, config$name, nms)
+    sprintf("list(\n%s)",  paste("          ", m, collapse = ",\n"))
+  }
+  methods_cpu <- methods("cpu")
+  methods_gpu <- paste(
+    "list(alloc = function(...) {",
+    '          stop("GPU support not enabled for this object")',
+    "        })", sep = "\n")
+
+  reload <- paste(deparse(reload_data), collapse = "\n")
+
+  list(model = model,
+       name = config$name,
+       class = config$class,
+       param = "NULL",
+       cuda = NULL, # unused here, used in dust
+       target = "ode",
+       container = "dust_ode",
+       has_gpu_support = as.character(FALSE),
+       methods_gpu = methods_gpu,
+       methods_cpu = methods_cpu,
+       reload = reload,
+       ## Non package interface only
+       base = config$base,
+       path_mode_include = mode_file("include"))
+}
+
+
 generate_mode <- function(filename, config, workdir) {
   model <- read_lines(filename)
 
@@ -97,13 +132,8 @@ generate_mode <- function(filename, config, workdir) {
   ## its own thing.
   path <- mode_workdir(workdir)
   reload_data <- list(path = path, base = config$base)
-  reload <- paste(deparse(reload_data), collapse = "\n")
-  data <- list(model = model,
-               name = config$name,
-               class = config$class,
-               base = config$base,
-               reload = reload,
-               path_mode_include = mode_file("include"))
+
+  data <- mode_template_data(model, config, reload_data)
 
   dir.create(file.path(path, "R"), FALSE, TRUE)
   dir.create(file.path(path, "src"), FALSE, TRUE)
