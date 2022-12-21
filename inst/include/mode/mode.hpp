@@ -6,18 +6,8 @@
 
 #include <dust/types.hpp> // dust::pars_type
 #include <mode/solver.hpp>
-#include <mode/types.hpp>
 
 namespace mode {
-
-// Models need to bring their own implementation here
-template <typename T>
-typename mode::pars_type<T> mode_pars(cpp11::list pars);
-
-template <typename T>
-cpp11::sexp mode_info(const dust::pars_type<T>& pars) {
-  return R_NilValue;
-}
 
 // TODO: consider a better name here, but using the same name as the
 // namespace does not end well...

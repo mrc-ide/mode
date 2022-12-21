@@ -55,6 +55,7 @@ private:
 };
 
 namespace dust {
+
 template <>
 dust::pars_type<logistic> dust_pars<logistic>(cpp11::list pars) {
   using real_type = logistic::real_type;
@@ -66,11 +67,9 @@ dust::pars_type<logistic> dust_pars<logistic>(cpp11::list pars) {
   logistic::shared_type shared{r1, K1, r2, K2};
   return dust::pars_type<logistic>(shared);
 }
-}
 
-namespace mode {
 template <>
-cpp11::sexp mode_info<logistic>(const dust::pars_type<logistic>& pars) {
+cpp11::sexp dust_info<logistic>(const dust::pars_type<logistic>& pars) {
   return cpp11::writable::strings({"N1", "N2"});
 }
 

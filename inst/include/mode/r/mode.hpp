@@ -31,7 +31,7 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   auto pars = dust::dust_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
-  cpp11::sexp info = mode_info(pars);
+  cpp11::sexp info = dust::dust_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
   auto n_particles = cpp11::as_cpp<int>(r_n_particles);
   mode::r::validate_positive(n_particles, "n_particles");
@@ -247,7 +247,7 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
   if (r_pars != R_NilValue) {
     auto pars = dust::dust_pars<T>(r_pars);
     obj->set_pars(pars);
-    ret = mode_info<T>(pars);
+    ret = dust::dust_info<T>(pars);
   }
   // NOTE: there's no equivalent to this in dust, with all the work
   // done at the 'r/' level, so we don't try and preserve much about
