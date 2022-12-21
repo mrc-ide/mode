@@ -9,6 +9,7 @@
 #include <cpp11/protect.hpp>
 
 #include <dust/random/random.hpp>
+#include <dust/r/helpers.hpp>
 #include <dust/r/random.hpp>
 #include <dust/r/utils.hpp>
 #include <dust/types.hpp>
@@ -38,7 +39,8 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   dust_ode<T> *d = new mode::dust_ode<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
   cpp11::external_pointer<dust_ode<T>> ptr(d, true, false);
-  cpp11::writable::integers r_shape({n_particles});
+  cpp11::writable::integers r_shape =
+    dust::r::vector_size_to_int(ptr->shape());
   auto r_ctl = mode::r::control(ctl);
   return cpp11::writable::list({ptr, info, r_shape, r_gpu_config, r_ctl});
 }
@@ -134,7 +136,7 @@ cpp11::sexp mode_run(SEXP ptr, double time_end) {
   obj->run(time_end);
 
   std::vector<double> dat(obj->n_state_run() * obj->n_particles());
-  obj->state_run(dat);
+  obj->state(dat);
   return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles());
 }
 
@@ -177,7 +179,7 @@ cpp11::sexp mode_state_select(T *obj, SEXP r_index) {
       mode::r::r_index_to_index(r_index, index_max);
   size_t n = index.size();
   std::vector<double> dat(n * obj->n_particles());
-  obj->state(dat, index);
+  obj->state(index, dat);
   return mode::r::state_array(dat, n, obj->n_particles());
 }
 
@@ -261,7 +263,7 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
 template <typename T>
 size_t mode_n_state(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_state_full();
+  return obj->n_state();
 }
 
 template <typename T>
