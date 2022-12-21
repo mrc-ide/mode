@@ -15,6 +15,9 @@ template <typename T>
 class dust_ode {
 public:
   using model_type = T;
+  using time_type = double;
+  using real_type = typename T::real_type;
+  using data_type = typename T::data_type;
   using pars_type = dust::pars_type<T>;
   using rng_state_type = typename T::rng_state_type;
   using rng_int_type = typename rng_state_type::int_type;
