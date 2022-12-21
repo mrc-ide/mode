@@ -10,6 +10,8 @@
 
 #include <dust/random/random.hpp>
 #include <dust/r/random.hpp>
+#include <dust/r/utils.hpp>
+#include <dust/types.hpp>
 #include <dust/utils.hpp>
 
 #include <mode/mode.hpp>
@@ -26,7 +28,7 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   if (deterministic) {
     cpp11::stop("Deterministic mode not supported for mode models");
   }
-  auto pars = mode::mode_pars<T>(r_pars);
+  auto pars = dust::dust_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
   cpp11::sexp info = mode_info(pars);
@@ -243,7 +245,7 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                                        static_cast<int>(obj->n_particles()));
   cpp11::sexp ret = R_NilValue;
   if (r_pars != R_NilValue) {
-    auto pars = mode::mode_pars<T>(r_pars);
+    auto pars = dust::dust_pars<T>(r_pars);
     obj->set_pars(pars);
     ret = mode_info<T>(pars);
   }

@@ -4,6 +4,7 @@
 #include <omp.h>
 #endif
 
+#include <dust/types.hpp> // dust::pars_type
 #include <mode/solver.hpp>
 #include <mode/types.hpp>
 
@@ -14,7 +15,7 @@ template <typename T>
 typename mode::pars_type<T> mode_pars(cpp11::list pars);
 
 template <typename T>
-cpp11::sexp mode_info(const mode::pars_type<T>& pars) {
+cpp11::sexp mode_info(const dust::pars_type<T>& pars) {
   return R_NilValue;
 }
 
@@ -24,7 +25,7 @@ template <typename T>
 class dust_ode {
 public:
   using model_type = T;
-  using pars_type = mode::pars_type<T>;
+  using pars_type = dust::pars_type<T>;
   using rng_state_type = typename T::rng_state_type;
   using rng_int_type = typename rng_state_type::int_type;
 

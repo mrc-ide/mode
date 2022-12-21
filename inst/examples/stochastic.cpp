@@ -1,8 +1,8 @@
 class logistic {
 public:
   using real_type = double;
-  using data_type = mode::no_data;
-  using internal_type = mode::no_internal;
+  using data_type = dust::no_data;
+  using internal_type = dust::no_internal;
   using rng_state_type = dust::random::generator<real_type>;
 
   struct shared_type {
@@ -13,7 +13,7 @@ public:
     real_type v;
   };
 
-  logistic(const mode::pars_type<logistic>& pars): shared(pars.shared) {
+  logistic(const dust::pars_type<logistic>& pars): shared(pars.shared) {
   }
 
   void rhs(real_type t,
@@ -58,13 +58,13 @@ public:
   }
 
 private:
-  mode::shared_ptr<logistic> shared;
+  dust::shared_ptr<logistic> shared;
 };
 
-namespace mode {
+namespace dust {
 
 template <>
-mode::pars_type<logistic> mode_pars<logistic>(cpp11::list pars) {
+dust::pars_type<logistic> dust_pars<logistic>(cpp11::list pars) {
   using real_type = logistic::real_type;
   real_type r1 = cpp11::as_cpp<real_type>(pars["r1"]);
   real_type K1 = cpp11::as_cpp<real_type>(pars["K1"]);
@@ -73,7 +73,7 @@ mode::pars_type<logistic> mode_pars<logistic>(cpp11::list pars) {
   real_type v = cpp11::as_cpp<real_type>(pars["v"]);
 
   logistic::shared_type shared{r1, K1, r2, K2, v};
-  return mode::pars_type<logistic>(shared);
+  return dust::pars_type<logistic>(shared);
 }
 
 }

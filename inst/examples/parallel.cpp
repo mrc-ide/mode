@@ -6,15 +6,15 @@
 class parallel {
 public:
   using real_type = double;
-  using data_type = mode::no_data;
-  using internal_type = mode::no_internal;
+  using data_type = dust::no_data;
+  using internal_type = dust::no_internal;
   using rng_state_type = dust::random::generator<real_type>;
 
   struct shared_type {
     real_type sd;
   };
 
-  parallel(const mode::pars_type<parallel>& pars) : shared(pars.shared) {
+  parallel(const dust::pars_type<parallel>& pars) : shared(pars.shared) {
   }
 
   size_t n_variables() const {
@@ -57,14 +57,14 @@ public:
   }
 
 private:
-  mode::shared_ptr<parallel> shared;
+  dust::shared_ptr<parallel> shared;
 };
 
-namespace mode {
+namespace dust {
 template <>
-mode::pars_type<parallel> mode_pars<parallel>(cpp11::list pars) {
+dust::pars_type<parallel> dust_pars<parallel>(cpp11::list pars) {
   parallel::real_type sd = cpp11::as_cpp<double>(pars["sd"]);
   parallel::shared_type shared{sd};
-  return mode::pars_type<parallel>(shared);
+  return dust::pars_type<parallel>(shared);
 }
 }
