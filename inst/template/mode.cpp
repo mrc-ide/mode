@@ -16,17 +16,17 @@ cpp11::sexp mode_{{name}}_gpu_info() {
 using {{name}}_{{target}} = mode::{{container}}<{{class}}>;
 
 [[cpp11::register]]
-SEXP mode_{{name}}_alloc(cpp11::list r_pars, bool pars_multi, double time,
+SEXP mode_{{name}}_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time,
                          cpp11::sexp r_n_particles, size_t n_threads,
                          cpp11::sexp r_seed, bool deterministic,
                          cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
-  return mode::r::mode_alloc<{{class}}>(r_pars, pars_multi, time, r_n_particles,
+  return mode::r::mode_alloc<{{class}}>(r_pars, pars_multi, r_time, r_n_particles,
                                         n_threads, r_seed, deterministic,
                                         r_gpu_config, r_ode_control);
 }
 
 [[cpp11::register]]
-double mode_{{name}}_time(SEXP ptr) {
+SEXP mode_{{name}}_time(SEXP ptr) {
   return mode::r::mode_time<{{name}}_{{target}}>(ptr);
 }
 
@@ -42,7 +42,7 @@ cpp11::sexp mode_{{name}}_set_rng_state(SEXP ptr, cpp11::raws rng_state) {
 }
 
 [[cpp11::register]]
-cpp11::sexp mode_{{name}}_run(SEXP ptr, double time_end) {
+cpp11::sexp mode_{{name}}_run(SEXP ptr, cpp11::sexp time_end) {
   return mode::r::mode_run<{{name}}_{{target}}>(ptr, time_end);
 }
 

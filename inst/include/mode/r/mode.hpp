@@ -22,7 +22,7 @@ namespace mode {
 namespace r {
 
 template <typename T>
-cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
+cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time,
                        cpp11::sexp r_n_particles, size_t n_threads,
                        cpp11::sexp r_seed, bool deterministic,
                        cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
@@ -32,6 +32,8 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
   auto pars = dust::dust_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
+  const double t0 = 0;
+  const auto time = dust::r::validate_time<double>(r_time, t0, "time");
   cpp11::sexp info = dust::dust_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
   auto n_particles = cpp11::as_cpp<int>(r_n_particles);
@@ -53,9 +55,9 @@ void mode_set_n_threads(SEXP ptr, size_t n_threads) {
 }
 
 template <typename T>
-double mode_time(SEXP ptr) {
+SEXP mode_time(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->time();
+  return cpp11::as_sexp(obj->time());
 }
 
 template <typename T>
@@ -126,13 +128,11 @@ void mode_set_stochastic_schedule(SEXP ptr, cpp11::sexp r_time) {
 }
 
 template <typename T>
-cpp11::sexp mode_run(SEXP ptr, double time_end) {
+cpp11::sexp mode_run(SEXP ptr, cpp11::sexp r_time_end) {
+  using time_type = typename T::time_type;
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  auto time = obj->time();
-  if (time_end < time) {
-    cpp11::stop("'time_end' (%f) must be greater than current time (%f)",
-                time_end, time);
-  }
+  const auto time_end =
+    dust::r::validate_time<time_type>(r_time_end, obj->time(), "time_end");
   obj->run(time_end);
 
   std::vector<double> dat(obj->n_state_run() * obj->n_particles());
@@ -143,26 +143,14 @@ cpp11::sexp mode_run(SEXP ptr, double time_end) {
 template <typename T>
 cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  using time_type = typename T::time_type;
+  const auto time_end =
+    dust::r::validate_time<std::vector<time_type>>(r_time_end, obj->time(), "time_end");
   obj->check_errors();
-  const auto time_end = as_vector_double(r_time_end, "time_end");
-  const auto n_time = time_end.size();
-  if (n_time == 0) {
-    cpp11::stop("'time_end' must have at least one element");
-  }
-  if (time_end[0] < obj->time()) {
-    cpp11::stop("'time_end[1]' must be at least %f", obj->time());
-  }
-  for (size_t i = 1; i < n_time; ++i) {
-    if (time_end[i] < time_end[i - 1]) {
-      cpp11::stop("'time_end' must be non-decreasing (error on element %d)",
-                  i + 1);
-    }
-  }
-
   auto dat = obj->simulate(time_end);
 
   return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
-                              n_time);
+                              time_end.size());
 }
 
 template <typename T>

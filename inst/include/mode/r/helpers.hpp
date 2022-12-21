@@ -46,28 +46,6 @@ cpp11::integers as_integer(cpp11::sexp x, const char * name) {
   }
 }
 
-template <typename T, typename U>
-std::vector<T> copy_vector(U x) {
-  std::vector<T> ret;
-  const auto len = x.size();
-  ret.reserve(len);
-  for (int i = 0; i < len; ++i) {
-    ret.push_back(x[i]);
-  }
-  return ret;
-}
-
-inline std::vector<double> as_vector_double(cpp11::sexp x, const char * name) {
-  if (TYPEOF(x) == INTSXP) {
-    return copy_vector<double>(cpp11::as_cpp<cpp11::integers>(x));
-  } else if (TYPEOF(x) == REALSXP) {
-    return copy_vector<double>(cpp11::as_cpp<cpp11::doubles>(x));
-  } else {
-    cpp11::stop("Expected a numeric vector for '%s'", name);
-    return std::vector<double>(); // never reached
-  }
-}
-
 inline
 std::vector<size_t> r_index_to_index(cpp11::sexp r_index, size_t nmax) {
   cpp11::integers r_index_int = as_integer(r_index, "index");
