@@ -251,7 +251,7 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
 template <typename T>
 size_t mode_n_state(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_state();
+  return obj->n_state_full();
 }
 
 template <typename T>

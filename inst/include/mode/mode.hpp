@@ -46,10 +46,6 @@ public:
     return n_particles_;
   }
 
-  size_t n_state() const {
-    return n_state_full();
-  }
-
   size_t n_state_full() const {
     return m_.n_variables() + m_.n_output();
   }
