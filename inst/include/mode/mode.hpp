@@ -58,12 +58,14 @@ public:
     return m_.n_variables();
   }
 
+  // Until we support multiple parameter sets, this is always zero
+  // (i.e., what dust uses when pars_multi = FALSE)
   size_t n_pars() const {
     return 0;
   }
 
   size_t n_pars_effective() const {
-    return 0;
+    return 1;
   }
 
   size_t pars_are_shared() const {
