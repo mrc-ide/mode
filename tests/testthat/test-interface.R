@@ -196,7 +196,7 @@ test_that("End time must be later than initial time", {
   initial_time <- 5
   mod <- ex$generator$new(ex$pars, initial_time, n_particles)
   expect_equal(mod$time(), initial_time)
-  e <- "'time_end' (2.000000) must be greater than current time (5.000000)"
+  e <- "'time_end' must be at least 5"
   expect_error(mod$run(2), e, fixed = TRUE)
 })
 

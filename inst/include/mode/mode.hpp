@@ -4,19 +4,10 @@
 #include <omp.h>
 #endif
 
+#include <dust/types.hpp> // dust::pars_type
 #include <mode/solver.hpp>
-#include <mode/types.hpp>
 
 namespace mode {
-
-// Models need to bring their own implementation here
-template <typename T>
-typename mode::pars_type<T> mode_pars(cpp11::list pars);
-
-template <typename T>
-cpp11::sexp mode_info(const mode::pars_type<T>& pars) {
-  return R_NilValue;
-}
 
 // TODO: consider a better name here, but using the same name as the
 // namespace does not end well...
@@ -24,7 +15,10 @@ template <typename T>
 class dust_ode {
 public:
   using model_type = T;
-  using pars_type = mode::pars_type<T>;
+  using time_type = double;
+  using real_type = typename T::real_type;
+  using data_type = typename T::data_type;
+  using pars_type = dust::pars_type<T>;
   using rng_state_type = typename T::rng_state_type;
   using rng_int_type = typename rng_state_type::int_type;
 
@@ -33,6 +27,7 @@ public:
            const control ctl, const std::vector<rng_int_type>& seed)
       : n_particles_(n_particles),
         n_threads_(n_threads),
+        shape_({n_particles}),
         m_(model_type(pars)),
         rng_(n_particles_, seed, false),
         errors_(n_particles){
@@ -51,7 +46,7 @@ public:
     return n_particles_;
   }
 
-  size_t n_state_full() {
+  size_t n_state_full() const {
     return m_.n_variables() + m_.n_output();
   }
 
@@ -61,6 +56,20 @@ public:
 
   size_t n_variables() {
     return m_.n_variables();
+  }
+
+  // Until we support multiple parameter sets, this is always zero
+  // (i.e., what dust uses when pars_multi = FALSE)
+  size_t n_pars() const {
+    return 0;
+  }
+
+  size_t n_pars_effective() const {
+    return 1;
+  }
+
+  size_t pars_are_shared() const {
+    return true;
   }
 
   void set_index(const std::vector<size_t>& index) {
@@ -91,6 +100,10 @@ public:
 
   double time() {
     return solver_[0].time();
+  }
+
+  const std::vector<size_t>& shape() const {
+    return shape_;
   }
 
   void run(double time_end) {
@@ -140,7 +153,7 @@ public:
     }
   }
 
-  void state_run(std::vector<double> &end_state) {
+  void state(std::vector<double> &end_state) {
     auto it = end_state.begin();
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
@@ -150,8 +163,8 @@ public:
     }
   }
 
-  void state(std::vector<double> &end_state,
-             const std::vector<size_t>& index) {
+  void state(const std::vector<size_t>& index,
+             std::vector<double> &end_state) {
     auto it = end_state.begin();
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
@@ -277,6 +290,7 @@ private:
   std::vector<solver<model_type>> solver_;
   size_t n_particles_;
   size_t n_threads_;
+  std::vector<size_t> shape_;
   model_type m_;
   std::vector<size_t> index_;
   dust::random::prng<rng_state_type> rng_;

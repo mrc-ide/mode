@@ -5,15 +5,16 @@
 
 class parallel {
 public:
-  using data_type = mode::no_data;
-  using internal_type = mode::no_internal;
-  using rng_state_type = dust::random::generator<double>;
+  using real_type = double;
+  using data_type = dust::no_data;
+  using internal_type = dust::no_internal;
+  using rng_state_type = dust::random::generator<real_type>;
 
   struct shared_type {
-    double sd;
+    real_type sd;
   };
 
-  parallel(const mode::pars_type<parallel>& pars) : shared(pars.shared) {
+  parallel(const dust::pars_type<parallel>& pars) : shared(pars.shared) {
   }
 
   size_t n_variables() const {
@@ -24,46 +25,46 @@ public:
     return 1;
   }
 
-  std::vector<double> initial(double time) {
+  std::vector<real_type> initial(real_type time) {
 #ifdef _OPENMP
     static bool has_openmp = true;
 #else
     static bool has_openmp = false;
 #endif
-    std::vector<double> ret = {(double) has_openmp};
+    std::vector<real_type> ret = {(real_type) has_openmp};
     return ret;
   }
 
-  void rhs(double t,
-           const std::vector<double>& y,
-           std::vector<double>& dydt) {
+  void rhs(real_type t,
+           const std::vector<real_type>& y,
+           std::vector<real_type>& dydt) {
     dydt[0] = 0;
   }
 
-  void output(double t,
-              const std::vector<double>& y,
-              std::vector<double>& output) {
+  void output(real_type t,
+              const std::vector<real_type>& y,
+              std::vector<real_type>& output) {
 #ifdef _OPENMP
-    output[0] = (double) omp_get_thread_num();
+    output[0] = (real_type) omp_get_thread_num();
 #else
     output[0] = -1;
 #endif
   }
 
-  void update_stochastic(double t, const std::vector<double>& y,
+  void update_stochastic(real_type t, const std::vector<real_type>& y,
                          rng_state_type& rng_state,
-                         std::vector<double>& y_next) {
+                         std::vector<real_type>& y_next) {
   }
 
 private:
-  mode::shared_ptr<parallel> shared;
+  dust::shared_ptr<parallel> shared;
 };
 
-namespace mode {
+namespace dust {
 template <>
-mode::pars_type<parallel> mode_pars<parallel>(cpp11::list pars) {
-  double sd = cpp11::as_cpp<double>(pars["sd"]);
+dust::pars_type<parallel> dust_pars<parallel>(cpp11::list pars) {
+  parallel::real_type sd = cpp11::as_cpp<double>(pars["sd"]);
   parallel::shared_type shared{sd};
-  return mode::pars_type<parallel>(shared);
+  return dust::pars_type<parallel>(shared);
 }
 }

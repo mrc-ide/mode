@@ -17,7 +17,7 @@ BugReports: https://github.com/mrc-ide/mode/issues
 Imports:
     R6,
     cpp11,
-    dust (>= 0.11.32),
+    dust (>= 0.12.9),
     glue,
     pkgbuild (>= 1.2.0),
     pkgload

@@ -9,7 +9,10 @@
 #include <cpp11/protect.hpp>
 
 #include <dust/random/random.hpp>
+#include <dust/r/helpers.hpp>
 #include <dust/r/random.hpp>
+#include <dust/r/utils.hpp>
+#include <dust/types.hpp>
 #include <dust/utils.hpp>
 
 #include <mode/mode.hpp>
@@ -19,24 +22,27 @@ namespace mode {
 namespace r {
 
 template <typename T>
-cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, double time,
+cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time,
                        cpp11::sexp r_n_particles, size_t n_threads,
                        cpp11::sexp r_seed, bool deterministic,
                        cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
   if (deterministic) {
     cpp11::stop("Deterministic mode not supported for mode models");
   }
-  auto pars = mode::mode_pars<T>(r_pars);
+  auto pars = dust::dust_pars<T>(r_pars);
   auto seed = dust::random::r::as_rng_seed<typename T::rng_state_type>(r_seed);
   auto ctl = mode::r::validate_ode_control(r_ode_control);
-  cpp11::sexp info = mode_info(pars);
+  const double t0 = 0;
+  const auto time = dust::r::validate_time<double>(r_time, t0, "time");
+  cpp11::sexp info = dust::dust_info(pars);
   mode::r::validate_positive(n_threads, "n_threads");
   auto n_particles = cpp11::as_cpp<int>(r_n_particles);
   mode::r::validate_positive(n_particles, "n_particles");
   dust_ode<T> *d = new mode::dust_ode<T>(pars, time, n_particles,
                                            n_threads, ctl, seed);
   cpp11::external_pointer<dust_ode<T>> ptr(d, true, false);
-  cpp11::writable::integers r_shape({n_particles});
+  cpp11::writable::integers r_shape =
+    dust::r::vector_size_to_int(ptr->shape());
   auto r_ctl = mode::r::control(ctl);
   return cpp11::writable::list({ptr, info, r_shape, r_gpu_config, r_ctl});
 }
@@ -49,9 +55,9 @@ void mode_set_n_threads(SEXP ptr, size_t n_threads) {
 }
 
 template <typename T>
-double mode_time(SEXP ptr) {
+SEXP mode_time(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->time();
+  return cpp11::as_sexp(obj->time());
 }
 
 template <typename T>
@@ -122,43 +128,29 @@ void mode_set_stochastic_schedule(SEXP ptr, cpp11::sexp r_time) {
 }
 
 template <typename T>
-cpp11::sexp mode_run(SEXP ptr, double time_end) {
+cpp11::sexp mode_run(SEXP ptr, cpp11::sexp r_time_end) {
+  using time_type = typename T::time_type;
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  auto time = obj->time();
-  if (time_end < time) {
-    cpp11::stop("'time_end' (%f) must be greater than current time (%f)",
-                time_end, time);
-  }
+  const auto time_end =
+    dust::r::validate_time<time_type>(r_time_end, obj->time(), "time_end");
   obj->run(time_end);
 
   std::vector<double> dat(obj->n_state_run() * obj->n_particles());
-  obj->state_run(dat);
+  obj->state(dat);
   return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles());
 }
 
 template <typename T>
 cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+  using time_type = typename T::time_type;
+  const auto time_end =
+    dust::r::validate_time<std::vector<time_type>>(r_time_end, obj->time(), "time_end");
   obj->check_errors();
-  const auto time_end = as_vector_double(r_time_end, "time_end");
-  const auto n_time = time_end.size();
-  if (n_time == 0) {
-    cpp11::stop("'time_end' must have at least one element");
-  }
-  if (time_end[0] < obj->time()) {
-    cpp11::stop("'time_end[1]' must be at least %f", obj->time());
-  }
-  for (size_t i = 1; i < n_time; ++i) {
-    if (time_end[i] < time_end[i - 1]) {
-      cpp11::stop("'time_end' must be non-decreasing (error on element %d)",
-                  i + 1);
-    }
-  }
-
   auto dat = obj->simulate(time_end);
 
   return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
-                              n_time);
+                              time_end.size());
 }
 
 template <typename T>
@@ -175,7 +167,7 @@ cpp11::sexp mode_state_select(T *obj, SEXP r_index) {
       mode::r::r_index_to_index(r_index, index_max);
   size_t n = index.size();
   std::vector<double> dat(n * obj->n_particles());
-  obj->state(dat, index);
+  obj->state(index, dat);
   return mode::r::state_array(dat, n, obj->n_particles());
 }
 
@@ -243,9 +235,9 @@ cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                                        static_cast<int>(obj->n_particles()));
   cpp11::sexp ret = R_NilValue;
   if (r_pars != R_NilValue) {
-    auto pars = mode::mode_pars<T>(r_pars);
+    auto pars = dust::dust_pars<T>(r_pars);
     obj->set_pars(pars);
-    ret = mode_info<T>(pars);
+    ret = dust::dust_info<T>(pars);
   }
   // NOTE: there's no equivalent to this in dust, with all the work
   // done at the 'r/' level, so we don't try and preserve much about

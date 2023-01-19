@@ -1,44 +1,45 @@
 class logistic {
 public:
-  using data_type = mode::no_data;
-  using internal_type = mode::no_internal;
-  using rng_state_type = dust::random::generator<double>;
+  using real_type = double;
+  using data_type = dust::no_data;
+  using internal_type = dust::no_internal;
+  using rng_state_type = dust::random::generator<real_type>;
 
   struct shared_type {
-    double r1;
-    double K1;
-    double r2;
-    double K2;
+    real_type r1;
+    real_type K1;
+    real_type r2;
+    real_type K2;
   };
 
-  logistic(const mode::pars_type<logistic>& pars): shared(pars.shared) {
+  logistic(const dust::pars_type<logistic>& pars): shared(pars.shared) {
   }
 
-  void rhs(double t,
-           const std::vector<double>& y,
-           std::vector<double>& dydt) const {
-    const double N1 = y[0];
-    const double N2 = y[1];
+  void rhs(real_type t,
+           const std::vector<real_type>& y,
+           std::vector<real_type>& dydt) const {
+    const real_type N1 = y[0];
+    const real_type N2 = y[1];
     dydt[0] = shared->r1 * N1 * (1 - N1 / shared->K1);
     dydt[1] = shared->r2 * N2 * (1 - N2 / shared->K2);
   }
 
-  void output(double t,
-         const std::vector<double>& y,
-         std::vector<double>& output) {
-    const double N1 = y[0];
-    const double N2 = y[1];
+  void output(real_type t,
+         const std::vector<real_type>& y,
+         std::vector<real_type>& output) {
+    const real_type N1 = y[0];
+    const real_type N2 = y[1];
     output[0] = N1 + N2;
   }
 
-  std::vector<double> initial(double time) {
-    std::vector<double> ret = {1, 1};
+  std::vector<real_type> initial(real_type time) {
+    std::vector<real_type> ret = {1, 1};
     return ret;
   }
 
-  void update_stochastic(double t, const std::vector<double>& y,
+  void update_stochastic(real_type t, const std::vector<real_type>& y,
                          rng_state_type& rng_state,
-                         std::vector<double>& y_next) {
+                         std::vector<real_type>& y_next) {
   }
 
   size_t n_variables() const {
@@ -50,24 +51,25 @@ public:
   }
 
 private:
-  mode::shared_ptr<logistic> shared;
+  dust::shared_ptr<logistic> shared;
 };
 
-namespace mode {
+namespace dust {
 
 template <>
-mode::pars_type<logistic> mode_pars<logistic>(cpp11::list pars) {
-  double r1 = cpp11::as_cpp<double>(pars["r1"]);
-  double K1 = cpp11::as_cpp<double>(pars["K1"]);
-  double r2 = cpp11::as_cpp<double>(pars["r2"]);
-  double K2 = cpp11::as_cpp<double>(pars["K2"]);
+dust::pars_type<logistic> dust_pars<logistic>(cpp11::list pars) {
+  using real_type = logistic::real_type;
+  real_type r1 = cpp11::as_cpp<double>(pars["r1"]);
+  real_type K1 = cpp11::as_cpp<double>(pars["K1"]);
+  real_type r2 = cpp11::as_cpp<double>(pars["r2"]);
+  real_type K2 = cpp11::as_cpp<double>(pars["K2"]);
 
   logistic::shared_type shared{r1, K1, r2, K2};
-  return mode::pars_type<logistic>(shared);
+  return dust::pars_type<logistic>(shared);
 }
 
 template <>
-cpp11::sexp mode_info<logistic>(const mode::pars_type<logistic>& pars) {
+cpp11::sexp dust_info<logistic>(const dust::pars_type<logistic>& pars) {
   return cpp11::writable::strings({"N1", "N2"});
 }
 
