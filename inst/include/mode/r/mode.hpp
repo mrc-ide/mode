@@ -135,9 +135,9 @@ cpp11::sexp mode_run(SEXP ptr, cpp11::sexp r_time_end) {
     dust::r::validate_time<time_type>(r_time_end, obj->time(), "time_end");
   obj->run(time_end);
 
-  std::vector<double> dat(obj->n_state_run() * obj->n_particles());
+  std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
-  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles());
+  return mode::r::state_array(dat, obj->n_state(), obj->n_particles());
 }
 
 template <typename T>
@@ -149,7 +149,7 @@ cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
   obj->check_errors();
   auto dat = obj->simulate(time_end);
 
-  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
+  return mode::r::state_array(dat, obj->n_state(), obj->n_particles(),
                               time_end.size());
 }
 

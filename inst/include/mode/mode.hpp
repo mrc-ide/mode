@@ -50,7 +50,7 @@ public:
     return m_.n_variables() + m_.n_output();
   }
 
-  size_t n_state_run() const {
+  size_t n_state() const {
     return index_.size();
   }
 
@@ -122,8 +122,7 @@ public:
 
   std::vector<double> simulate(const std::vector<double>& time_end) {
     const size_t n_time = time_end.size();
-    const size_t n_state = n_state_run();
-    std::vector<double> ret(n_particles() * n_state * n_time);
+    std::vector<double> ret(n_particles() * n_state() * n_time);
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
@@ -132,7 +131,7 @@ public:
       try {
         for (size_t t = 0; t < n_time; ++t) {
           solver_[i].solve(time_end[t], rng_.state(i));
-          size_t offset = t * n_state * n_particles() + i * n_state;
+          size_t offset = t * n_state() * n_particles() + i * n_state();
           solver_[i].state(index_, ret.begin() + offset);
         }
       } catch (std::exception const& e) {
@@ -159,7 +158,7 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].state(index_, it + i * n_state_run());
+      solver_[i].state(index_, it + i * n_state());
     }
   }
 
