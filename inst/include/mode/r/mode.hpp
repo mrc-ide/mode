@@ -255,12 +255,6 @@ size_t mode_n_state(SEXP ptr) {
 }
 
 template <typename T>
-size_t mode_n_variables(SEXP ptr) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_variables();
-}
-
-template <typename T>
 void mode_reorder(SEXP ptr, cpp11::sexp r_index) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   const size_t index_max = obj->n_particles();
