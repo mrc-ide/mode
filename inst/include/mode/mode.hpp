@@ -173,6 +173,49 @@ public:
     }
   }
 
+  void set_time(double time) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_time(t, false);
+    }
+  }
+
+  void set_state(const std::vector<real_type>& state,
+                 const std::vector<size_t>& index) {
+    const size_t n_particles = particles_.size();
+    const bool use_index = index.size() > 0;
+    const size_t n_state = use_index ? index.size() : n_state_full();
+    const bool individual = state.size() == n_state * n_particles;
+    const size_t n = individual ? 1 : n_particles_each_;
+    auto it = state.begin();
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+    for (size_t i = 0; i < n_particles_; ++i) {
+      // in dust we use it_i = it + (i / n) * n_state
+      auto start = it;
+      if (individual) {
+        start = it + i * n;
+      }
+      solver_[i].set_state(t, start, index);
+    }
+  }
+
+  void initialise(bool reset_step_size) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+    for (size_t i = 0; i < n_particles_; ++i) {
+      if (reset_step_size) {
+        solver_[i].set_initial_step_size;
+      }
+      solver_[i].initialise();
+    }
+  }
+
   void update_state(std::vector<double> time,
                     const std::vector<double>& state,
                     const std::vector<size_t>& index,
@@ -219,13 +262,25 @@ public:
     }
   }
 
-  void set_pars(const pars_type& pars) {
+  void set_pars(const pars_type& pars, bool set_initial_state) {
     m_ = model_type(pars);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
       solver_[i].set_model(m_);
+    }
+
+    if (set_initial_state) {
+      const auto t = solver_[0].time();
+      auto y = m_.initial(t);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+      for (size_t i = 0; i < n_particles_; ++i) {
+        solver_[i].set_state(t, y);
+        solver_[i].initialise(t);
+      }
     }
   }
 
