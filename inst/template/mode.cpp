@@ -69,7 +69,7 @@ cpp11::sexp mode_{{name}}_update_state(SEXP ptr,
                                        SEXP set_initial_state,
                                        SEXP index,
                                        SEXP reset_step_size) {
-  return mode::r::mode_update_state<{{class}}>(ptr,
+  return mode::r::mode_update_state<{{name}}_{{target}}>(ptr,
       pars, state, time, set_initial_state, index, reset_step_size);
 }
 
