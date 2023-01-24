@@ -205,9 +205,9 @@ cpp11::sexp mode_update_state_set_pars(T *obj, cpp11::list r_pars,
                                        bool set_initial_state) {
   using model_type = typename T::model_type;
   cpp11::sexp ret = R_NilValue;
-  dust::pars_type<model_type> pars = dust_pars<model_type>(r_pars);
+  dust::pars_type<model_type> pars = dust::dust_pars<model_type>(r_pars);
   obj->set_pars(pars, set_initial_state);
-  ret = dust_info<model_type>(pars);
+  ret = dust::dust_info<model_type>(pars);
   return ret;
 }
 

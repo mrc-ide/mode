@@ -178,18 +178,18 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].set_time(t, false);
+      solver_[i].set_time(time, false);
     }
   }
 
   void set_state(const std::vector<real_type>& state,
                  const std::vector<size_t>& index) {
-    const size_t n_particles = particles_.size();
     const bool use_index = index.size() > 0;
     const size_t n_state = use_index ? index.size() : n_state_full();
-    const bool individual = state.size() == n_state * n_particles;
-    const size_t n = individual ? 1 : n_particles_each_;
+    const bool individual = state.size() == n_state * n_particles_;
+    const size_t n = individual ? 1 : n_particles_; // really n_particles_each_
     auto it = state.begin();
+    const auto t = time();
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
