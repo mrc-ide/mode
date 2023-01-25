@@ -152,6 +152,8 @@ test_that("Can update state with a matrix", {
   expect_identical(state[1, ] + state[2, ], state[3, ])
 })
 
+## Leaving these two tests, disabled, until after merging with dust;
+## then we can adjust the checks to re-enable this.
 test_that("Output indexes ignored when updating by vector", {
   skip("currently disabled")
   path <- mode_file("examples/logistic.cpp")

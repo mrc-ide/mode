@@ -243,6 +243,10 @@ cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
     obj->set_state(state, index);
   }
 
+  // TODO: this is something with no real dust analogue, but needs
+  // adding (e.g., a dummy method) along with this call so that things
+  // work. Alternatively we wrap this up and test for presence of the
+  // method, or of the time type?
   obj->initialise(reset_step_size);
 
   // If we set both initial conditions and time then we're safe to
