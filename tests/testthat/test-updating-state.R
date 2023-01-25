@@ -8,7 +8,7 @@ test_that("Can update time", {
   expect_equal(mod$time(), initial_time)
   res <- mod$run(5)
   expect_equal(mod$time(), 5)
-  mod$update_state(time = initial_time)
+  mod$update_state(time = initial_time, pars = pars)
   expect_equal(mod$time(), initial_time)
   res2 <- mod$run(5)
   expect_identical(res, res2)
@@ -256,8 +256,6 @@ test_that("Nothing happens if any arguments are invalid", {
   expect_equal(mod$state(), initial_state)
   expect_equal(mod$pars(), initial_pars)
 
-  ## TODO: this one still fails, not sure how we get away with this in
-  ## dust?
   expect_error(mod$update_state(pars = list(r3 = 1),
                                 state = c(1, 2),
                                 time = 5))

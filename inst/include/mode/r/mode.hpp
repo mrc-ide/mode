@@ -232,7 +232,8 @@ cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
     try {
       ret = mode_update_state_set_pars(obj, cpp11::as_cpp<cpp11::list>(r_pars),
                                        set_initial_state);
-    } catch (const std::invalid_argument& e) {
+    } catch (const std::exception& e) {
+      // TODO: this needs relaxing in dust; we don't catch this error atm.
       obj->set_time(time_prev);
       throw e;
     }
