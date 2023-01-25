@@ -185,7 +185,7 @@ public:
   void set_state(const std::vector<real_type>& state,
                  const std::vector<size_t>& index) {
     const bool use_index = index.size() > 0;
-    const size_t n_state = use_index ? index.size() : n_state_full();
+    const size_t n_state = use_index ? index.size() : n_variables();
     const bool individual = state.size() == n_state * n_particles_;
     const size_t n = individual ? 1 : n_particles_; // really n_particles_each_
     auto it = state.begin();
@@ -195,12 +195,13 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      // in dust we use it_i = it + (i / n) * n_state
-      auto start = it;
-      if (individual) {
-        start = it + i * n;
+      const auto it_i = it + (i / n) * n_state;
+      // TODO: no real need to take 't' here at all.
+      if (use_index) {
+        solver_[i].set_state(t, it_i, index);
+      } else {
+        solver_[i].set_state(t, it_i);
       }
-      solver_[i].set_state(t, start, index);
     }
   }
 
@@ -210,7 +211,7 @@ public:
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
       if (reset_step_size) {
-        solver_[i].set_initial_step_size;
+        solver_[i].set_initial_step_size();
       }
       solver_[i].initialise();
     }

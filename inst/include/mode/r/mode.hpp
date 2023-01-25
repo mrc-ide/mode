@@ -219,7 +219,8 @@ cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
                                   const std::vector<real_type>& state,
                                   const std::vector<typename T::time_type>& time,
                                   bool set_initial_state,
-                                  const std::vector<size_t>& index) {
+                                  const std::vector<size_t>& index,
+                                  const bool reset_step_size) {
   cpp11::sexp ret = R_NilValue;
   const auto time_prev = obj->time();
 
@@ -241,6 +242,8 @@ cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
     obj->set_state(state, index);
   }
 
+  obj->initialise(reset_step_size);
+
   // If we set both initial conditions and time then we're safe to
   // continue here.
   if ((set_initial_state || state.size() > 0) && time.size() > 0) {
@@ -253,7 +256,7 @@ cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
 template <typename T>
 SEXP mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
                        SEXP r_set_initial_state, SEXP r_index,
-                       SEXP reset_step_size) {
+                       SEXP r_reset_step_size) {
   using real_type = typename T::real_type;
   using time_type = typename T::time_type;
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
@@ -262,6 +265,9 @@ SEXP mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
   const bool has_pars = r_pars != R_NilValue;
   const bool has_state = r_state != R_NilValue;
   const bool has_index = r_index != R_NilValue;
+
+  const auto reset_step_size =
+    mode::r::validate_reset_step_size(r_time, r_pars, r_reset_step_size);
 
   bool set_initial_state = false;
   if (r_set_initial_state == R_NilValue) {
@@ -300,12 +306,16 @@ SEXP mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
 
   if (has_state) {
     if (has_index) {
-      index = dust::r::r_index_to_index(r_index, obj->n_state_full());
+      // TODO: some care here for dust...
+      index = dust::r::r_index_to_index(r_index, obj->n_variables());
       if (index.size() == 0) {
         cpp11::stop("Expected at least one element in 'index'");
       }
     }
-    const size_t expected_len = has_index ? index.size() : obj->n_state_full();
+    // TODO: some care needed here when merging into dust, as this
+    // concept is not really a thing as we don't have output
+    // variables.
+    const size_t expected_len = has_index ? index.size() : obj->n_variables();
     state = dust::r::check_state<real_type>(r_state,
                                             expected_len,
                                             obj->shape(),
@@ -313,7 +323,7 @@ SEXP mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
   }
 
   return mode_update_state_set(obj, r_pars, state, time, set_initial_state,
-                               index);
+                               index, reset_step_size);
 }
 
 template <typename T>

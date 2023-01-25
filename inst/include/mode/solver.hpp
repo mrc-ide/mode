@@ -159,6 +159,10 @@ public:
     stepper_.initialise(t);
   }
 
+  void initialise() {
+    stepper_.initialise(t_);
+  }
+
   void set_state(double t,
                  const std::vector<double> &state) {
     set_state(t, state.begin());
