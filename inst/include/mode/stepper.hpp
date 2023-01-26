@@ -119,15 +119,13 @@ public:
     return std::sqrt(err / n_var);
   }
 
-  void set_state(double t,
-                 std::vector<double>::const_iterator state) {
+  void set_state(std::vector<double>::const_iterator state) {
     for (size_t i = 0; i < n_var; ++i, ++state) {
       y[i] = *state;
     }
   }
 
-  void set_state(double t,
-                 std::vector<double>::const_iterator state,
+  void set_state(std::vector<double>::const_iterator state,
                  const std::vector<size_t>& index) {
     for (size_t i = 0; i < index.size(); ++i, ++state) {
       y[index[i]] = *state;

@@ -48,7 +48,7 @@ cpp11::list mode_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time,
 }
 
 template <typename T>
-void mode_set_n_threads(SEXP ptr, size_t n_threads) {
+void mode_set_n_threads(SEXP ptr, int n_threads) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   mode::r::validate_positive(n_threads, "n_threads");
   obj->set_n_threads(n_threads);
@@ -135,9 +135,9 @@ cpp11::sexp mode_run(SEXP ptr, cpp11::sexp r_time_end) {
     dust::r::validate_time<time_type>(r_time_end, obj->time(), "time_end");
   obj->run(time_end);
 
-  std::vector<double> dat(obj->n_state_run() * obj->n_particles());
+  std::vector<double> dat(obj->n_state() * obj->n_particles());
   obj->state(dat);
-  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles());
+  return mode::r::state_array(dat, obj->n_state(), obj->n_particles());
 }
 
 template <typename T>
@@ -149,7 +149,7 @@ cpp11::sexp mode_simulate(SEXP ptr, cpp11::sexp r_time_end) {
   obj->check_errors();
   auto dat = obj->simulate(time_end);
 
-  return mode::r::state_array(dat, obj->n_state_run(), obj->n_particles(),
+  return mode::r::state_array(dat, obj->n_state(), obj->n_particles(),
                               time_end.size());
 }
 
@@ -201,63 +201,140 @@ cpp11::sexp mode_ode_statistics(SEXP ptr) {
 }
 
 template <typename T>
-cpp11::sexp mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
-                              SEXP r_set_initial_state,
-                              SEXP r_index, SEXP r_reset_step_size) {
-  mode::dust_ode<T> *obj =
-      cpp11::as_cpp < cpp11::external_pointer<mode::dust_ode<T>>>(ptr).get();
+cpp11::sexp mode_update_state_set_pars(T *obj, cpp11::list r_pars,
+                                       bool set_initial_state) {
+  using model_type = typename T::model_type;
+  cpp11::sexp ret = R_NilValue;
+  dust::pars_type<model_type> pars = dust::dust_pars<model_type>(r_pars);
+  obj->set_pars(pars, set_initial_state);
+  ret = dust::dust_info<model_type>(pars);
+  return ret;
+}
 
-  std::vector<size_t> index;
-  const size_t index_max = obj->n_variables();
-  if (r_index != R_NilValue) {
-    index = mode::r::r_index_to_index(r_index, index_max);
-  } else {
-    index.clear();
-    index.reserve(index_max);
-    for (size_t i = 0; i < index_max; ++i) {
-      index.push_back(i);
+// There are many components of state (not including rng state which
+// we treat separately), we set components always in the order (1)
+// time, (2) pars, (3) state
+template <typename T, typename real_type>
+cpp11::sexp mode_update_state_set(T *obj, SEXP r_pars,
+                                  const std::vector<real_type>& state,
+                                  const std::vector<typename T::time_type>& time,
+                                  bool set_initial_state,
+                                  const std::vector<size_t>& index,
+                                  const bool reset_step_size) {
+  cpp11::sexp ret = R_NilValue;
+  const auto time_prev = obj->time();
+
+  if (time.size() == 1) {
+    obj->set_time(time[0]);
+  }
+
+  if (r_pars != R_NilValue) {
+    try {
+      ret = mode_update_state_set_pars(obj, cpp11::as_cpp<cpp11::list>(r_pars),
+                                       set_initial_state);
+    } catch (const std::exception& e) {
+      // TODO: this needs relaxing in dust; we don't catch this error atm.
+      obj->set_time(time_prev);
+      throw e;
     }
   }
 
-  const size_t n_state_full = obj->n_state_full();
-
-  auto set_initial_state = mode::r::validate_set_initial_state(r_state,
-                                                               r_pars,
-                                                               r_time,
-                                                               r_set_initial_state);
-  auto reset_step_size = mode::r::validate_reset_step_size(r_time,
-                                                           r_pars,
-                                                           r_reset_step_size);
-  auto time = mode::r::validate_time(r_time);
-  auto state = mode::r::validate_state(r_state,
-                                       index.size(),
-                                       n_state_full,
-                                       static_cast<int>(obj->n_particles()));
-  cpp11::sexp ret = R_NilValue;
-  if (r_pars != R_NilValue) {
-    auto pars = dust::dust_pars<T>(r_pars);
-    obj->set_pars(pars);
-    ret = dust::dust_info<T>(pars);
+  if (state.size() > 0) { // && !set_initial_state, though that is implied
+    obj->set_state(state, index);
   }
-  // NOTE: there's no equivalent to this in dust, with all the work
-  // done at the 'r/' level, so we don't try and preserve much about
-  // the order of variables here (partly because everywhere else
-  // within the ode work we do (time, state) not (state, time) as on
-  // entry here.
-  obj->update_state(time, state, index, set_initial_state, reset_step_size);
+
+  // TODO: this is something with no real dust analogue, but needs
+  // adding (e.g., a dummy method) along with this call so that things
+  // work. Alternatively we wrap this up and test for presence of the
+  // method, or of the time type?
+  obj->initialise(reset_step_size);
+
+  // If we set both initial conditions and time then we're safe to
+  // continue here.
+  if ((set_initial_state || state.size() > 0) && time.size() > 0) {
+    obj->reset_errors();
+  }
+
   return ret;
+}
+
+template <typename T>
+SEXP mode_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time,
+                       SEXP r_set_initial_state, SEXP r_index,
+                       SEXP r_reset_step_size) {
+  using real_type = typename T::real_type;
+  using time_type = typename T::time_type;
+  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
+
+  const bool has_time = r_time != R_NilValue;
+  const bool has_pars = r_pars != R_NilValue;
+  const bool has_state = r_state != R_NilValue;
+  const bool has_index = r_index != R_NilValue;
+
+  const auto reset_step_size =
+    mode::r::validate_reset_step_size(r_time, r_pars, r_reset_step_size);
+
+  bool set_initial_state = false;
+  if (r_set_initial_state == R_NilValue) {
+    set_initial_state = !has_state && has_pars && has_time;
+  } else {
+    set_initial_state = cpp11::as_cpp<bool>(r_set_initial_state);
+  }
+
+  if (set_initial_state && !has_pars) {
+    cpp11::stop("Can't use 'set_initial_state' without providing 'pars'");
+  }
+  if (set_initial_state && has_state) {
+    cpp11::stop("Can't use both 'set_initial_state' and provide 'state'");
+  }
+  if (has_index && !has_state) {
+    cpp11::stop("Can't provide 'index' without providing 'state'");
+  }
+
+  // Do the validation on both arguments first so that we leave this
+  // function having dealt with both or neither (i.e., do not fail on
+  // time after succeeding on state).
+
+  std::vector<time_type> time;
+  std::vector<real_type> state;
+
+  if (has_time) {
+    const time_type t0 = 0;
+    time = dust::r::validate_time<std::vector<time_type>>(r_time, t0, "time");
+    const size_t len = time.size();
+    if (len != 1) {
+      cpp11::stop("Expected 'time' to be scalar");
+    }
+  }
+
+  std::vector<size_t> index;
+
+  if (has_state) {
+    if (has_index) {
+      // TODO: some care here for dust...
+      index = dust::r::r_index_to_index(r_index, obj->n_variables());
+      if (index.size() == 0) {
+        cpp11::stop("Expected at least one element in 'index'");
+      }
+    }
+    // TODO: some care needed here when merging into dust, as this
+    // concept is not really a thing as we don't have output
+    // variables.
+    const size_t expected_len = has_index ? index.size() : obj->n_variables();
+    state = dust::r::check_state<real_type>(r_state,
+                                            expected_len,
+                                            obj->shape(),
+                                            obj->pars_are_shared());
+  }
+
+  return mode_update_state_set(obj, r_pars, state, time, set_initial_state,
+                               index, reset_step_size);
 }
 
 template <typename T>
 size_t mode_n_state(SEXP ptr) {
   T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
   return obj->n_state_full();
-}
-
-template <typename T>
-size_t mode_n_variables(SEXP ptr) {
-  T *obj = cpp11::as_cpp<cpp11::external_pointer<T>>(ptr).get();
-  return obj->n_variables();
 }
 
 template <typename T>

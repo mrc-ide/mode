@@ -17,7 +17,7 @@ using {{name}}_{{target}} = mode::{{container}}<{{class}}>;
 
 [[cpp11::register]]
 SEXP mode_{{name}}_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time,
-                         cpp11::sexp r_n_particles, size_t n_threads,
+                         cpp11::sexp r_n_particles, int n_threads,
                          cpp11::sexp r_seed, bool deterministic,
                          cpp11::sexp r_gpu_config, cpp11::sexp r_ode_control) {
   return mode::r::mode_alloc<{{class}}>(r_pars, pars_multi, r_time, r_n_particles,
@@ -69,7 +69,7 @@ cpp11::sexp mode_{{name}}_update_state(SEXP ptr,
                                        SEXP set_initial_state,
                                        SEXP index,
                                        SEXP reset_step_size) {
-  return mode::r::mode_update_state<{{class}}>(ptr,
+  return mode::r::mode_update_state<{{name}}_{{target}}>(ptr,
       pars, state, time, set_initial_state, index, reset_step_size);
 }
 
@@ -84,12 +84,7 @@ void mode_{{name}}_set_stochastic_schedule(SEXP ptr, SEXP time) {
 }
 
 [[cpp11::register]]
-size_t mode_{{name}}_n_variables(SEXP ptr) {
-  return mode::r::mode_n_variables<{{name}}_{{target}}>(ptr);
-}
-
-[[cpp11::register]]
-size_t mode_{{name}}_n_state(SEXP ptr) {
+int mode_{{name}}_n_state(SEXP ptr) {
   return mode::r::mode_n_state<{{name}}_{{target}}>(ptr);
 }
 

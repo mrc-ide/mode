@@ -1,3 +1,4 @@
+// [[dust::time_type(continuous)]]
 class logistic {
 public:
   using real_type = double;
@@ -59,9 +60,13 @@ namespace dust {
 template <>
 dust::pars_type<logistic> dust_pars<logistic>(cpp11::list pars) {
   using real_type = logistic::real_type;
+  // [[dust::param(r1, required = TRUE)]]
   real_type r1 = cpp11::as_cpp<double>(pars["r1"]);
+  // [[dust::param(K1, required = TRUE)]]
   real_type K1 = cpp11::as_cpp<double>(pars["K1"]);
+  // [[dust::param(r2, required = TRUE)]]
   real_type r2 = cpp11::as_cpp<double>(pars["r2"]);
+  // [[dust::param(K2, required = TRUE)]]
   real_type K2 = cpp11::as_cpp<double>(pars["K2"]);
 
   logistic::shared_type shared{r1, K1, r2, K2};

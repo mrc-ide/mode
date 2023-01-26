@@ -35,7 +35,8 @@ public:
                         n_variables_(m.n_variables()),
                         n_output_(m.n_output()) {
     stats_.reset();
-    set_state(t, y);
+    set_state(y);
+    initialise();
     set_initial_step_size();
   }
 
@@ -128,13 +129,10 @@ public:
     stochastic_schedule_ = time;
   }
 
-  void set_time(double t, bool reset_step_size) {
+  void set_time(double t) {
     if (t != t_) {
       stats_.reset();
       t_ = t;
-    }
-    if (reset_step_size) {
-      set_initial_step_size();
     }
   }
 
@@ -142,32 +140,26 @@ public:
     h_ = stepper_.init_step_size(t_, ctl_);
   }
 
-  void set_state(double t,
-                 std::vector<double>::const_iterator state) {
-    stepper_.set_state(t, state);
-    stepper_.initialise(t);
+  void set_state(std::vector<double>::const_iterator state) {
+    stepper_.set_state(state);
   }
 
-  void set_state(double t,
-                 std::vector<double>::const_iterator state,
+  void set_state(std::vector<double>::const_iterator state,
                  const std::vector<size_t>& index) {
-    stepper_.set_state(t, state, index);
-    stepper_.initialise(t);
+    stepper_.set_state(state, index);
   }
 
-  void initialise(double t) {
-    stepper_.initialise(t);
+  void initialise() {
+    stepper_.initialise(t_);
   }
 
-  void set_state(double t,
-                 const std::vector<double> &state) {
-    set_state(t, state.begin());
+  void set_state(const std::vector<double> &state) {
+    set_state(state.begin());
   }
 
-  void set_state(double t,
-                 const std::vector<double> &state,
+  void set_state(const std::vector<double> &state,
                  const std::vector<size_t>& index) {
-    set_state(t, state.begin(), index);
+    set_state(state.begin(), index);
   }
 
   void set_state(const solver<Model>& other) {

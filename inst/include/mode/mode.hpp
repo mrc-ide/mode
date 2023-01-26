@@ -50,7 +50,7 @@ public:
     return m_.n_variables() + m_.n_output();
   }
 
-  size_t n_state_run() const {
+  size_t n_state() const {
     return index_.size();
   }
 
@@ -122,8 +122,7 @@ public:
 
   std::vector<double> simulate(const std::vector<double>& time_end) {
     const size_t n_time = time_end.size();
-    const size_t n_state = n_state_run();
-    std::vector<double> ret(n_particles() * n_state * n_time);
+    std::vector<double> ret(n_particles() * n_state() * n_time);
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
@@ -132,7 +131,7 @@ public:
       try {
         for (size_t t = 0; t < n_time; ++t) {
           solver_[i].solve(time_end[t], rng_.state(i));
-          size_t offset = t * n_state * n_particles() + i * n_state;
+          size_t offset = t * n_state() * n_particles() + i * n_state();
           solver_[i].state(index_, ret.begin() + offset);
         }
       } catch (std::exception const& e) {
@@ -159,7 +158,7 @@ public:
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
-      solver_[i].state(index_, it + i * n_state_run());
+      solver_[i].state(index_, it + i * n_state());
     }
   }
 
@@ -174,59 +173,66 @@ public:
     }
   }
 
-  void update_state(std::vector<double> time,
-                    const std::vector<double>& state,
-                    const std::vector<size_t>& index,
-                    bool set_initial_state,
-                    bool reset_step_size) {
-    auto t = solver_[0].time();
-    if (time.size() > 0) {
-      t = time[0];
+  void set_time(double time) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+    for (size_t i = 0; i < n_particles_; ++i) {
+      solver_[i].set_time(time);
     }
-    if (state.size() > 0) {
-      size_t n = index.size();
-      const bool individual = state.size() == n * n_particles_;
-      auto it = state.begin();
+  }
+
+  void set_state(const std::vector<real_type>& state,
+                 const std::vector<size_t>& index) {
+    const bool use_index = index.size() > 0;
+    const size_t n_state = use_index ? index.size() : n_variables();
+    const bool individual = state.size() == n_state * n_particles_;
+    const size_t n = individual ? 1 : n_particles_; // really n_particles_each_
+    auto it = state.begin();
+
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
-      for (size_t i = 0; i < n_particles_; ++i) {
-        auto start = it;
-        if (individual) {
-            start = it + i * n;
-        }
-        solver_[i].set_state(t, start, index);
-        solver_[i].set_time(t, reset_step_size);
-        solver_[i].initialise(t);
-      }
-    } else if (set_initial_state) {
-      auto y = m_.initial(t);
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static) num_threads(n_threads_)
-#endif
-      for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_state(t, y, index);
-        solver_[i].set_time(t, reset_step_size);
-        solver_[i].initialise(t);
-      }
-    } else {
-#ifdef _OPENMP
-#pragma omp parallel for schedule(static) num_threads(n_threads_)
-#endif
-      for (size_t i = 0; i < n_particles_; ++i) {
-        solver_[i].set_time(t, reset_step_size);
-        solver_[i].initialise(t);
+    for (size_t i = 0; i < n_particles_; ++i) {
+      const auto it_i = it + (i / n) * n_state;
+      if (use_index) {
+        solver_[i].set_state(it_i, index);
+      } else {
+        solver_[i].set_state(it_i);
       }
     }
   }
 
-  void set_pars(const pars_type& pars) {
+  void initialise(bool reset_step_size) {
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+    for (size_t i = 0; i < n_particles_; ++i) {
+      if (reset_step_size) {
+        solver_[i].set_initial_step_size();
+      }
+      solver_[i].initialise();
+    }
+  }
+
+  void set_pars(const pars_type& pars, bool set_initial_state) {
     m_ = model_type(pars);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
       solver_[i].set_model(m_);
+    }
+
+    if (set_initial_state) {
+      const auto t = solver_[0].time();
+      auto y = m_.initial(t);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(n_threads_)
+#endif
+      for (size_t i = 0; i < n_particles_; ++i) {
+        solver_[i].set_state(y);
+      }
     }
   }
 
@@ -244,6 +250,7 @@ public:
     for (size_t i = 0; i < n_particles_; ++i) {
       solver_[i].swap();
     }
+    initialise(false);
   }
 
   void statistics(std::vector<size_t> &all_stats) {

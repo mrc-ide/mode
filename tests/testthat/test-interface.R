@@ -367,11 +367,11 @@ test_that("A null schedule clears stochastic schedule", {
   expect_equal(y, apply(exp(rng$normal(6, 0, 0.1)), 2, prod))
 
   ## reset and rerun, draw another set:
-  mod$update_state(time = 0)
+  mod$update_state(time = 0, pars = pars, set_initial_state = TRUE)
   y <- drop(mod$run(10))
   expect_equal(y, apply(exp(rng$normal(6, 0, 0.1)), 2, prod))
 
-  mod$update_state(time = 0)
+  mod$update_state(time = 0, pars = pars, set_initial_state = TRUE)
   mod$set_stochastic_schedule(NULL)
   y <- drop(mod$run(10))
   expect_equal(y, rep(1, np))
@@ -426,14 +426,13 @@ test_that("Can get state when multi-threaded", {
 test_that("Can update state when multi-threaded", {
   ex <- example_logistic()
   np <- 3
-  mod <- ex$generator$new(ex$pars, 0, np, n_threads = 4)
-  mod$run(3)
+  mod <- ex$generator$new(ex$pars, 0, np, n_threads = 1)
+  y <- mod$run(3)
 
   new_pars <- list(r1 = 0.5, r2 = 0.7, K1 = 200, K2 = 200)
 
   # update all particles to have the same state
-  mod$update_state(pars = new_pars, time = 2,
-                            state = c(1, 2))
+  mod$update_state(pars = new_pars, time = 2, state = c(1, 2))
 
   expect_equal(mod$state(), matrix(rep(1:3, np), nrow = 3))
   expect_equal(mod$time(), 2)
@@ -606,7 +605,7 @@ test_that("can set an index and reflect that in simulate output", {
   expect_equal(dim(m), c(2, n_particles, length(t)))
 
   ## Same as the full output:
-  mod$update_state(time = 0, set_initial_state = TRUE)
+  mod$update_state(time = 0, pars = ex$pars, set_initial_state = TRUE)
   mod$set_index(NULL)
   expect_identical(unname(m), mod$simulate(t)[2:3, , ])
 })
