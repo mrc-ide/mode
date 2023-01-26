@@ -195,7 +195,6 @@ public:
 #endif
     for (size_t i = 0; i < n_particles_; ++i) {
       const auto it_i = it + (i / n) * n_state;
-      // TODO: no real need to take 't' here at all.
       if (use_index) {
         solver_[i].set_state(it_i, index);
       } else {
