@@ -71,6 +71,7 @@ cpp11::integers object_dimensions(cpp11::sexp obj, size_t obj_size) {
   return dim;
 }
 
+inline
 cpp11::sexp state_array(const std::vector<double>& dat,
                         size_t n_state,
                         size_t n_particles) {
@@ -83,6 +84,7 @@ cpp11::sexp state_array(const std::vector<double>& dat,
   return ret;
 }
 
+inline
 cpp11::sexp state_array(const std::vector<double>& dat,
                         size_t n_state, size_t n_particles, size_t n_time) {
   cpp11::writable::doubles ret(dat.size());
@@ -95,6 +97,7 @@ cpp11::sexp state_array(const std::vector<double>& dat,
   return ret;
 }
 
+inline
 cpp11::sexp stats_array(const std::vector<size_t>& dat,
                         size_t n_particles) {
   cpp11::writable::integers ret(dat.size());
