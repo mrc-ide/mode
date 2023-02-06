@@ -236,6 +236,10 @@ public:
     }
   }
 
+  void set_pars(const std::vector<pars_type>& pars, bool set_initial_state) {
+    cpp11::stop("Multiparameter setting not yet supported");
+  }
+
   void reorder(const std::vector<size_t>& index) {
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(n_threads_)
@@ -291,6 +295,12 @@ public:
 
   void set_rng_state(const std::vector<typename rng_state_type::int_type>& rng_state) {
     rng_.import_state(rng_state);
+  }
+
+  // needs proper implementation after merge with dust
+  std::vector<size_t> resample(std::vector<real_type>& weights) {
+    std::runtime_error("resample not supported");
+    return std::vector<size_t>();
   }
 
 private:

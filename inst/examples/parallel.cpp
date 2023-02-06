@@ -1,3 +1,4 @@
+// [[dust::time_type(continuous)]]
 #include <utility>
 #ifdef _OPENMP
 #include <omp.h>
@@ -63,6 +64,7 @@ private:
 namespace dust {
 template <>
 dust::pars_type<parallel> dust_pars<parallel>(cpp11::list pars) {
+  // [[dust::param(sd, required = TRUE)]]
   parallel::real_type sd = cpp11::as_cpp<double>(pars["sd"]);
   parallel::shared_type shared{sd};
   return dust::pars_type<parallel>(shared);
